@@ -3,8 +3,8 @@ import { nanoid } from "../utils/nanoid";
 
 export interface CategoryInput {
   name: string;
-  image: string;
-  description: string;
+  image?: string;
+  description?: string;
 }
 
 export interface CategoryDocument extends CategoryInput, mongoose.Document {
@@ -20,7 +20,7 @@ const CategorySchema = new mongoose.Schema(
       unique: true,
       default: () => `category_${nanoid()}`,
     },
-    name: { type: String, required: true },
+    name: { type: String, unique: true, required: true },
     image: { type: String },
     description: { type: String },
   },

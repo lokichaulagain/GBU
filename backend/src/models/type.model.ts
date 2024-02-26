@@ -3,8 +3,8 @@ import { nanoid } from "../utils/nanoid";
 
 export interface TypeInput {
   name: string;
-  image: string;
-  description: string;
+  image?: string;
+  description?: string;
 }
 
 export interface TypeDocument extends TypeInput, mongoose.Document {

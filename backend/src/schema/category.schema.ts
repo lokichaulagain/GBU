@@ -1,16 +1,13 @@
-import { object, number, string, TypeOf, any } from "zod";
+import { object, string, TypeOf, unknown } from "zod";
 
+// Define common schemas
 const payload = {
   body: object({
     name: string({
       required_error: "name is required",
     }),
-
-    image: any(),
-    
-    description: string({
-      required_error: "description is required",
-    }),
+    image: unknown().optional(),
+    description: string().optional(),
   }),
 };
 
@@ -22,6 +19,7 @@ const params = {
   }),
 };
 
+// Define specific schemas
 export const createCategorySchema = object({
   ...payload,
 });
@@ -39,6 +37,7 @@ export const getCategorySchema = object({
   ...params,
 });
 
+// Define types
 export type CreateCategoryInput = TypeOf<typeof createCategorySchema>;
 export type UpdateCategoryInput = TypeOf<typeof updateCategorySchema>;
 export type ReadCategoryInput = TypeOf<typeof getCategorySchema>;

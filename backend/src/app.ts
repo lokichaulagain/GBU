@@ -5,16 +5,8 @@ import logger from "./utils/logger";
 import cors from "cors";
 import connectDB from "./utils/connectDB";
 import userRouter from "../src/routes/user.route";
-import inquiryRoute from "../src/routes/inquiry.route";
-import iternaryRoute from "../src/routes/iternary.route";
-import costIncludeRoute from "../src/routes/costInclude.route";
-import costExcludeRoute from "../src/routes/costExclude.route";
-import fixedDateRoute from "../src/routes/fixedDate.route";
-import expeditionRoute from "../src/routes/expedition.route";
-import bookingRoute from "../src/routes/booking.route";
-import inboxRoute from "../src/routes/inbox.route";
 import categoryRoute from "../src/routes/category.route";
-import categoryXExpeditionRoute from "../src/routes/categoryXExpedition.route";
+import typeRoute from "../src/routes/type.route";
 
 const app = express();
 // const port = process.env.PORT;
@@ -36,16 +28,8 @@ app.use(
 
 // Route
 app.use("/api/users", userRouter);
-app.use("/api/inquiries", inquiryRoute);
-app.use("/api/iternaries", iternaryRoute);
-app.use("/api/cost-includes", costIncludeRoute);
-app.use("/api/cost-excludes", costExcludeRoute);
-app.use("/api/fixed-dates", fixedDateRoute);
-app.use("/api/expeditions", expeditionRoute);
-app.use("/api/bookings", bookingRoute);
-app.use("/api/inboxes", inboxRoute);
 app.use("/api/categories", categoryRoute);
-app.use("/api/categories-x-expeditions", categoryXExpeditionRoute);
+app.use("/api/types", typeRoute);
 
 // Testing
 app.get("/healthChecker", (req: Request, res: Response, next: NextFunction) => {
@@ -77,5 +61,3 @@ app.listen(port, async () => {
   logger.info(`App is running at http://localhost:${port}`);
   await connectDB();
 });
-
-

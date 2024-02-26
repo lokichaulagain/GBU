@@ -13,9 +13,6 @@ export interface PartyInput {
   image: string;
 }
 
-
-
-
 export interface PartyDocument extends PartyInput, mongoose.Document {
   createdAt: Date;
   updatedAt: Date;
