@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import CollapsibleTab from "../dashboard/components/CollapsibleTab";
 import AdminNotification from "../dashboard/components/AdminNotification";
 import AdminCircleUser from "../dashboard/components/AdminCircleUser";
+import ThemeToggleButton from "../dashboard/ThemeToggleButton";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -16,9 +17,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className=" flex">
       {!isFullScreen && (
-        <div className={`${isFullScreen ? "" : "w-2/12"}  h-screen overflow-y-scroll bg-slate-800 p-4`}>
-          <p className=" text-3xl font-semibold  mb-8 text-gray-200 ">Dashboard</p>
-          <div className=" space-y-5 tracking-wider text-gray-400 ">
+        <div className={`${isFullScreen ? "" : "w-2/12"}  h-screen overflow-y-scroll bg-primary p-4 text-primary-foreground `}>
+          <p className=" text-3xl font-semibold  mb-8   ">Dashboard</p>
+          <div className=" space-y-5 tracking-wider   ">
             {navItems.map((item: INavItem, index: number) => (
               <CollapsibleTab
                 key={index}
@@ -29,8 +30,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <div className={`${isFullScreen ? " w-full " : " w-10/12"} h-screen overflow-y-scroll  bg-slate-100`}>
-        <div className="  flex items-center justify-between bg-white h-12 px-4 shadow-md z-50">
+      <div className={`${isFullScreen ? " w-full " : " w-10/12"} h-screen overflow-y-scroll`}>
+        <div className="  flex items-center justify-between  h-12 px-4 shadow-md z-50">
           <Button
             onClick={changeFullScreen}
             variant="outline">
@@ -39,6 +40,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className=" flex space-x-4">
             <AdminNotification />
             <AdminCircleUser />
+            <ThemeToggleButton />
           </div>
         </div>
         <div className=" px-4 mt-8 ">{children}</div>

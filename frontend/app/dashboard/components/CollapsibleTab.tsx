@@ -11,7 +11,7 @@ type Props = {
 export default function CollapsibleTab({ item }: Props) {
   return (
     <div className=" ">
-      <p className=" text-xs tracking-wider uppercase mb-2 text-slate-500 text-opacity-50 mt-6">LAYOUTS & PAGES</p>
+      {/* <p className=" text-xs tracking-wider uppercase mb-2  mt-6">LAYOUTS & PAGES</p> */}
       <Collapsible
         transitionTime={100}
         trigger={

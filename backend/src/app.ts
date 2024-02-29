@@ -7,6 +7,7 @@ import connectDB from "./utils/connectDB";
 import userRouter from "../src/routes/user.route";
 import categoryRoute from "../src/routes/category.route";
 import typeRoute from "../src/routes/type.route";
+import unitRoute from "../src/routes/unit.route";
 
 const app = express();
 // const port = process.env.PORT;
@@ -19,7 +20,7 @@ app.use(express.json({ limit: "10kb" }));
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://test.epeakexpedition.com", "http://test.epeakexpedition.com", "http://epeak.com", "https://epeak.com"],
+    origin: ["http://localhost:3000"],
     credentials: true,
   })
 );
@@ -30,6 +31,7 @@ app.use(
 app.use("/api/users", userRouter);
 app.use("/api/categories", categoryRoute);
 app.use("/api/types", typeRoute);
+app.use("/api/units", unitRoute);
 
 // Testing
 app.get("/healthChecker", (req: Request, res: Response, next: NextFunction) => {
