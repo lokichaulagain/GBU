@@ -1,13 +1,21 @@
-import { object, string, TypeOf, unknown } from "zod";
+import { number, object, string, TypeOf, unknown } from "zod";
 
 // Define common schemas
 const payload = {
   body: object({
     name: string({
-      required_error: "Category Name is required",
+      required_error: "Name is required",
     }),
+    phone: number().optional(),
+    type: string().optional(),
+
+    openingBalance: string().optional(),
+    openingBalanceDate: string().optional(),
+    address: string().optional(),
+
+    email: string().optional(),
+    panNumber: string().optional(),
     image: string().optional(),
-    description: string().optional(),
   }),
 };
 

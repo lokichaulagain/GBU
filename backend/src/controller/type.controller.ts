@@ -1,7 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import AppError from "../utils/appError";
-import { uploadSingleFile } from "../middleware/uploadSingleFile";
-import { handleUpdateImage } from "../middleware/handleUpdateImage";
 import { CreateTypeInput, UpdateTypeInput } from "../schema/type.schema";
 import { findType, createType, findAllType, findAndUpdateType, deleteType } from "../service/type.service";
 var colors = require("colors");
@@ -12,14 +10,11 @@ export async function createTypeHandler(req: Request<{}, {}, CreateTypeInput["bo
     const alreadyExist = await findType({ name: body.name });
 
     if (alreadyExist) {
-      next(new AppError(`type with the name (${body.name}) already exist`, 404));
+      next(new AppError(`Type with the name (${body.name}) already exist`, 404));
       return;
     }
 
-    const image = req.file;
-    const url = await uploadSingleFile(image);
-
-    const type = await createType({ ...body, image: url });
+    const type = await createType(body);
     return res.status(201).json({
       status: "success",
       msg: "Create success",
@@ -53,7 +48,7 @@ export async function getTypeHandler(req: Request<UpdateTypeInput["params"]>, re
     const type = await findType({ typeId });
 
     if (!type) {
-      next(new AppError("type does not exist", 404));
+      next(new AppError("Type does not exist", 404));
     }
 
     return res.json({
@@ -73,18 +68,13 @@ export async function updateTypeHandler(req: Request<UpdateTypeInput["params"]>,
     const type: any = await findType({ typeId });
 
     if (!type) {
-      next(new AppError("type does not exist", 404));
+      next(new AppError("Type does not exist", 404));
       return;
     }
 
-    const url = await handleUpdateImage(req, type);
-    const updated = await findAndUpdateType(
-      { typeId },
-      { ...req.body, image: url },
-      {
-        new: true,
-      }
-    );
+    const updated = await findAndUpdateType({ typeId }, req.body, {
+      new: true,
+    });
 
     return res.status(200).json({
       status: "success",
@@ -103,7 +93,7 @@ export async function deleteTypeHandler(req: Request<UpdateTypeInput["params"]>,
     const type = await findType({ typeId });
 
     if (!type) {
-      next(new AppError("type does not exist", 404));
+      next(new AppError("Type does not exist", 404));
       return;
     }
 

@@ -12,21 +12,22 @@ import defaultImage from "../../../public/default-images/unit-default-image.png"
 import Link from "next/link";
 import { toast } from "sonner";
 import SpinLoader from "@/app/dashboard/components/SpinLoader";
-import { ICategoryOut } from "@/app/types/category";
-import { useDeleteCategoryMutation, useGetAllCategoryQuery } from "@/lib/features/categorySlice";
+import { ITypeOut } from "@/app/types/type";
+import { useGetAllTypeQuery, useDeleteTypeMutation } from "@/lib/features/typeSlice";
+
 
 export default function Page() {
-  const { data: categories, isError, isLoading: isFetching, refetch } = useGetAllCategoryQuery({});
+  const { data: types, isError, isLoading: isFetching, refetch } = useGetAllTypeQuery({});
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
-  const [deleteCategory, { data, isError: add, isLoading: arr }] = useDeleteCategoryMutation();
+  const [deleteType, { data, isError: add, isLoading: arr }] = useDeleteTypeMutation();
 
   const handleDelete = async (id: string) => {
     try {
-      const res: any = await deleteCategory(id);
+      const res: any = await deleteType(id);
       toast(res.data.msg);
       refetch(); // Refetch the data after successful deletion
     } catch (error: any) {
@@ -34,7 +35,7 @@ export default function Page() {
     }
   };
 
-  const columns: ColumnDef<ICategoryOut>[] = [
+  const columns: ColumnDef<ITypeOut>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -62,7 +63,7 @@ export default function Page() {
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Category Name
+            Type Name
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
@@ -85,7 +86,7 @@ export default function Page() {
           <div className="">
             <Image
               src={imageUrl || defaultImage}
-              alt="Category Image"
+              alt="Type Image"
               width={50}
               height={50}
             />
@@ -112,16 +113,16 @@ export default function Page() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(item.categoryId)}>Copy item ID</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(item.typeId)}>Copy item ID</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <Link href={`/categories/view/${item.categoryId}`}>
-                <DropdownMenuItem>View category</DropdownMenuItem>
+              <Link href={`/types/view/${item.typeId}`}>
+                <DropdownMenuItem>View type</DropdownMenuItem>
               </Link>
-              <Link href={`/categories/edit/${item.categoryId}`}>
-                <DropdownMenuItem>Edit category</DropdownMenuItem>
+              <Link href={`/types/edit/${item.typeId}`}>
+                <DropdownMenuItem>Edit type</DropdownMenuItem>
               </Link>
 
-              <DropdownMenuItem onClick={() => handleDelete(item.categoryId)}>Delete category</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDelete(item.typeId)}>Delete type</DropdownMenuItem>
               <DropdownMenuItem>View item details</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -132,7 +133,7 @@ export default function Page() {
 
   const table = useReactTable({
     // data,
-    data: categories?.data || [],
+    data: types?.data || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -170,7 +171,7 @@ export default function Page() {
         />
 
         <div className=" space-x-2">
-          <Link href={"/categories/create"}>
+          <Link href={"/types/create"}>
             <Button>Add New</Button>
           </Link>
           <DropdownMenu>

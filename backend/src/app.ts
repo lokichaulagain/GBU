@@ -29,9 +29,9 @@ app.use(
 
 // Route
 app.use("/api/users", userRouter);
-app.use("/api/categories", categoryRoute);
 app.use("/api/types", typeRoute);
 app.use("/api/units", unitRoute);
+app.use("/api/categories", categoryRoute);
 
 // Testing
 app.get("/healthChecker", (req: Request, res: Response, next: NextFunction) => {

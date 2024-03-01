@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { createClient } from "@supabase/supabase-js";
 import { useState } from "react";
-import Loader from "../Loader";
+import Loader from "../SpinLoader";
 import { toast } from "sonner";
 
 const supabaseUrl = "https://jccqmprpjqytolovmaas.supabase.co";

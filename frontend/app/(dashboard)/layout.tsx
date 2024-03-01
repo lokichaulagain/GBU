@@ -95,8 +95,8 @@ const navItems = [
       },
 
       {
-        title: "About3",
-        href: "/users",
+        title: "Types",
+        href: "/types",
       },
     ],
   },

@@ -3,11 +3,13 @@ import { nanoid } from "../utils/nanoid";
 
 export interface PartyInput {
   name: string;
-  phone: string;
+  phone: number;
   type: string;
+
   openingBalance: string;
-  openingDate: Date;
+  openingBalanceDate: Date;
   address: string;
+
   email: string;
   panNumber: string;
   image: string;

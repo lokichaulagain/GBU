@@ -1,3 +1,4 @@
+"use client"
 import BreadCum from "@/app/dashboard/components/BreadCum";
 import { MyTable } from "@/app/dashboard/components/MyTable";
 

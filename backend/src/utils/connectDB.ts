@@ -15,7 +15,7 @@ export default async function connectDB() {
   operation.attempt(async () => {
     try {
       // await mongoose.connect(`${process.env.DB_CONNECTION}`);
-      await mongoose.connect("mongodb+srv://lokichaulagain:d9iKwCRAIwirdEDz@cluster0.j0cf0u1.mongodb.net/?retryWrites=true&w=majority");
+      await mongoose.connect("mongodb+srv://lokichaulagain:lflWj60Nx4KHp65e@cluster0.xeaqh96.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
       logger.info("DB connected...");
     } catch (error: any) {
       logger.error("Could not connect to db", error);

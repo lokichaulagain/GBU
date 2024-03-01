@@ -16,10 +16,7 @@ export async function createCategoryHandler(req: Request<{}, {}, CreateCategoryI
       return;
     }
 
-    const image = req.file;
-    const url = await uploadSingleFile(image);
-
-    const category = await createCategory({ ...body, image: url });
+    const category = await createCategory(body);
     return res.status(201).json({
       status: "success",
       msg: "Create success",
