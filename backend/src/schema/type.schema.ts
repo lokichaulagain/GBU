@@ -1,12 +1,12 @@
-import { object, string, TypeOf, unknown } from "zod";
+import { object, string, TypeOf } from "zod";
 
 // Define common schemas
 const payload = {
   body: object({
     name: string({
-      required_error: "name is required",
+      required_error: "Name is required",
     }),
-    image: unknown().optional(),
+    image: string().optional(),
     description: string().optional(),
   }),
 };
@@ -35,6 +35,10 @@ export const deleteTypeSchema = object({
 
 export const getTypeSchema = object({
   ...params,
+});
+
+export const getAllTypeSchema = object({
+  query: object({}).optional(),
 });
 
 // Define types

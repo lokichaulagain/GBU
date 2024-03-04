@@ -10,7 +10,7 @@ export async function createUnitHandler(req: Request<{}, {}, CreateUnitInput["bo
     const alreadyExist = await findUnit({ name: body.name });
 
     if (alreadyExist) {
-      next(new AppError(`unit with the name (${body.name}) already exist`, 404));
+      next(new AppError(`Unit with the name (${body.name}) already exist`, 404));
       return;
     }
 

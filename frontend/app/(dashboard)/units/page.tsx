@@ -13,9 +13,10 @@ import Image from "next/image";
 import defaultUnitImage from "../../../public/default-images/unit-default-image.png";
 import Link from "next/link";
 import { toast } from "sonner";
+import SpinLoader from "@/app/dashboard/components/SpinLoader";
 
 export default function Page() {
-  const { data: units, isError, isLoading, refetch } = useGetAllUnitQuery({});
+  const { data: units, isError, isLoading: isFetching, refetch } = useGetAllUnitQuery({});
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -149,6 +150,15 @@ export default function Page() {
     },
   });
 
+  if (isFetching) {
+    return (
+      <div>
+        {" "}
+        <SpinLoader />
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
       <div className="flex justify-between items-center py-4">
@@ -223,6 +233,7 @@ export default function Page() {
             )}
           </TableBody>
         </Table>
+        {/* {isFetching && <p>Loading</p>} */}
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">

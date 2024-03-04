@@ -95,8 +95,28 @@ const navItems = [
       },
 
       {
-        title: "About3",
-        href: "/users",
+        title: "Types",
+        href: "/types",
+      },
+
+      {
+        title: "Income Categories",
+        href: "/income-categories",
+      },
+
+      {
+        title: "Expense Categories",
+        href: "/expense-categories",
+      },
+
+      {
+        title: "Incomes",
+        href: "/incomes",
+      },
+
+      {
+        title: "Expenses",
+        href: "/expenses",
       },
     ],
   },

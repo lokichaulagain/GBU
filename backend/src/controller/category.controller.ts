@@ -2,8 +2,6 @@ import { NextFunction, Request, Response } from "express";
 import AppError from "../utils/appError";
 import { CreateCategoryInput, UpdateCategoryInput } from "../schema/category.schema";
 import { createCategory, deleteCategory, findAllCategory, findAndUpdateCategory, findCategory } from "../service/category.service";
-import { uploadSingleFile } from "../middleware/uploadSingleFile";
-import { handleUpdateImage } from "../middleware/handleUpdateImage";
 var colors = require("colors");
 
 export async function createCategoryHandler(req: Request<{}, {}, CreateCategoryInput["body"]>, res: Response, next: NextFunction) {
@@ -16,10 +14,7 @@ export async function createCategoryHandler(req: Request<{}, {}, CreateCategoryI
       return;
     }
 
-    const image = req.file;
-    const url = await uploadSingleFile(image);
-
-    const category = await createCategory({ ...body, image: url });
+    const category = await createCategory(body);
     return res.status(201).json({
       status: "success",
       msg: "Create success",
@@ -77,14 +72,9 @@ export async function updateCategoryHandler(req: Request<UpdateCategoryInput["pa
       return;
     }
 
-    const url = await handleUpdateImage(req, category);
-    const updatedCategory = await findAndUpdateCategory(
-      { categoryId },
-      { ...req.body, image: url },
-      {
-        new: true,
-      }
-    );
+    const updatedCategory = await findAndUpdateCategory({ categoryId }, req.body, {
+      new: true,
+    });
 
     return res.status(200).json({
       status: "success",

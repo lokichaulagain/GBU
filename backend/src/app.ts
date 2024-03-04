@@ -9,12 +9,20 @@ import categoryRoute from "../src/routes/category.route";
 import typeRoute from "../src/routes/type.route";
 import unitRoute from "../src/routes/unit.route";
 
+import incomeRoute from "../src/routes/expense.route";
+import expenseRoute from "../src/routes/income.route";
+
+import paymentInRoute from "../src/routes/paymentIn.route";
+import paymentOutRoute from "../src/routes/paymentOut.route";
+
+import incomeCategoryRoute from "../src/routes/incomeCategory.route";
+import expenseCategoryRoute from "../src/routes/expenseCategory.route";
+
 const app = express();
 // const port = process.env.PORT;
 const port = 5008;
 
 // Middleware
-
 // Body Parser middleware
 app.use(express.json({ limit: "10kb" }));
 
@@ -29,9 +37,17 @@ app.use(
 
 // Route
 app.use("/api/users", userRouter);
-app.use("/api/categories", categoryRoute);
 app.use("/api/types", typeRoute);
 app.use("/api/units", unitRoute);
+app.use("/api/categories", categoryRoute);
+app.use("/api/income-categories", incomeCategoryRoute);
+app.use("/api/expense-categories", expenseCategoryRoute);
+
+app.use("/api/incomes", incomeRoute);
+app.use("/api/expenses", expenseRoute);
+
+app.use("/api/payments-in", paymentInRoute);
+app.use("/api/payments-out", paymentOutRoute);
 
 // Testing
 app.get("/healthChecker", (req: Request, res: Response, next: NextFunction) => {

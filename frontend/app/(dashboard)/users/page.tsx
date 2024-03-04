@@ -1,3 +1,5 @@
+"use client"
+
 import BreadCum from "@/app/dashboard/components/BreadCum";
 import { AdminCreateSheet } from "@/app/dashboard/components/sheets/AdminCreateSheet";
 import { AdminListTable } from "@/app/dashboard/components/tables/AdminListTable";

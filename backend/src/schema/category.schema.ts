@@ -4,9 +4,9 @@ import { object, string, TypeOf, unknown } from "zod";
 const payload = {
   body: object({
     name: string({
-      required_error: "name is required",
+      required_error: "Category Name is required",
     }),
-    image: unknown().optional(),
+    image: string().optional(),
     description: string().optional(),
   }),
 };
@@ -35,6 +35,10 @@ export const deleteCategorySchema = object({
 
 export const getCategorySchema = object({
   ...params,
+});
+
+export const getAllCategorySchema = object({
+  query: object({}).optional(),
 });
 
 // Define types
