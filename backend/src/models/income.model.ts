@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
 import { nanoid } from "../utils/nanoid";
+import { IncomeCategoryDocument } from "./incomeCategory.model";
 
 export interface IncomeInput {
-  category: IncomeDocument["_id"];
+  incomeCategory: IncomeCategoryDocument["_id"];
   amount: number;
   paymentMethod: string;
-  date: Date;
+  date?: Date;
   note?: string;
   image?: string;
 }
@@ -23,10 +24,10 @@ const incomeSchema = new mongoose.Schema(
       unique: true,
       default: () => `income_${nanoid()}`,
     },
-    category: { type: mongoose.Schema.Types.ObjectId, ref: "Category", require: true },
+    incomeCategory: { type: mongoose.Schema.Types.ObjectId, ref: "IncomeCategory", required: true },
     amount: { type: Number, required: true },
-    paymentMethod: { type: String, enum: ["cash", "cheque", "online"], require: true },
-    date: { type: Date, require: true },
+    paymentMethod: { type: String, enum: ["cash", "cheque", "online"], required: true },
+    date: { type: Date },
     note: { type: String },
     image: { type: String },
   },

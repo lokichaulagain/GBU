@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
 import { nanoid } from "../utils/nanoid";
+import { ExpenseCategoryDocument } from "./expenseCategory.model";
 
 export interface ExpenseInput {
-  category: ExpenseDocument["_id"];
+  expenseCategory: ExpenseCategoryDocument["_id"];
   amount: number;
   paymentMethod: string;
-  date: Date;
+  date?: Date;
   note?: string;
   image?: string;
 }
@@ -23,10 +24,10 @@ const expenseSchema = new mongoose.Schema(
       unique: true,
       default: () => `expense_${nanoid()}`,
     },
-    category: { type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true },
+    category: { type: mongoose.Schema.Types.ObjectId, ref: "ExpenseCategory", required: true },
     amount: { type: Number, required: true },
     paymentMethod: { type: String, enum: ["cash", "cheque", "online"], required: true },
-    date: { type: Date, require: true },
+    date: { type: Date },
     note: { type: String },
     image: { type: String },
   },
