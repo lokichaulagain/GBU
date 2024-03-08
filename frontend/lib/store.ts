@@ -5,6 +5,8 @@ import { categoryApi } from "./features/categorySlice";
 import { typeApi } from "./features/typeSlice";
 import { incomeCategoryApi } from "./features/incomeCategorySlice";
 import { expenseCategoryApi } from "./features/expenseCategorySlice";
+import { incomeApi } from "./features/incomeSlice";
+import { expenseApi } from "./features/expenseSlice";
 
 export const makeStore = () => {
   const store = configureStore({
@@ -14,6 +16,8 @@ export const makeStore = () => {
       [typeApi.reducerPath]: typeApi.reducer,
       [incomeCategoryApi.reducerPath]: incomeCategoryApi.reducer,
       [expenseCategoryApi.reducerPath]: expenseCategoryApi.reducer,
+      [incomeApi.reducerPath]: incomeApi.reducer,
+      [expenseApi.reducerPath]: expenseApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(
@@ -22,6 +26,8 @@ export const makeStore = () => {
         typeApi.middleware,
         incomeCategoryApi.middleware,
         expenseCategoryApi.middleware,
+        incomeApi.middleware,
+        expenseApi.middleware,
       ),
   });
 

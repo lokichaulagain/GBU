@@ -12,22 +12,22 @@ import defaultImage from "../../../public/default-images/unit-default-image.png"
 import Link from "next/link";
 import { toast } from "sonner";
 import SpinLoader from "@/app/dashboard/components/SpinLoader";
-import { ICategoryOut } from "@/app/types/category";
-import { useDeleteCategoryMutation, useGetAllCategoryQuery } from "@/lib/features/categorySlice";
-import { useGetAllExpenseCategoryQuery } from "@/lib/features/expenseCategorySlice";
+import { useGetAllExpenseQuery, useDeleteExpenseMutation } from "@/lib/features/expenseSlice";
+import { IExpenseOut } from "@/app/types/expense";
+import Pill from "@/components/custom/Pill";
 
 export default function Page() {
-  const { data: categories, isError, isLoading: isFetching, refetch } = useGetAllCategoryQuery({});
+  const { data: expenses, isError, isLoading: isFetching, refetch } = useGetAllExpenseQuery({});
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
-  const [deleteCategory, { data, isError: add, isLoading: arr }] = useDeleteCategoryMutation();
+  const [deleteExpense, { data, isError: add, isLoading: arr }] = useDeleteExpenseMutation();
 
   const handleDelete = async (id: string) => {
     try {
-      const res: any = await deleteCategory(id);
+      const res: any = await deleteExpense(id);
       toast(res.data.msg);
       refetch(); // Refetch the data after successful deletion
     } catch (error: any) {
@@ -35,8 +35,7 @@ export default function Page() {
     }
   };
 
-
-  const columns: ColumnDef<ICategoryOut>[] = [
+  const columns: ColumnDef<IExpenseOut>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -58,24 +57,40 @@ export default function Page() {
     },
 
     {
-      accessorKey: "name",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Category Name
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
+      accessorKey: "date",
+      header: "Date ",
+      cell: ({ row }) => <div className="capitalize"> {row.getValue("date")}</div>,
     },
 
     {
-      accessorKey: "description",
-      header: "Description",
-      cell: ({ row }) => <div className="capitalize">{row.getValue("description")}</div>,
+      accessorKey: "note",
+      header: "Note",
+      cell: ({ row }) => <div className="capitalize">Rs. {row.getValue("note")}</div>,
+    },
+
+    {
+      accessorKey: "paymentMethod",
+      header: "Payment Method",
+      cell: ({ row }) => (
+        <>
+          {row.getValue("paymentMethod") === "cash" ? (
+            <Pill
+              value={row.getValue("paymentMethod")}
+              className="bg-red-200"
+            />
+          ) : row.getValue("paymentMethod") === "cheque" ? (
+            <Pill
+              value={row.getValue("paymentMethod")}
+              className="bg-sky-200"
+            />
+          ) : row.getValue("paymentMethod") === "online" ? (
+            <Pill
+              value={row.getValue("paymentMethod")}
+              className="bg-green-200"
+            />
+          ) : null}
+        </>
+      ),
     },
 
     {
@@ -87,7 +102,7 @@ export default function Page() {
           <div className="">
             <Image
               src={imageUrl || defaultImage}
-              alt="Category Image"
+              alt="Income Image"
               width={50}
               height={50}
             />
@@ -114,16 +129,16 @@ export default function Page() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(item.categoryId)}>Copy item ID</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(item.expenseId)}>Copy item ID</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <Link href={`/categories/view/${item.categoryId}`}>
-                <DropdownMenuItem>View category</DropdownMenuItem>
-              </Link>
-              <Link href={`/categories/edit/${item.categoryId}`}>
-                <DropdownMenuItem>Edit category</DropdownMenuItem>
+              {/* <Link href={`/incomes/view/${item.expenseId}`}>
+                <DropdownMenuItem>View income</DropdownMenuItem>
+              </Link> */}
+              <Link href={`/incomes/edit/${item.expenseId}`}>
+                <DropdownMenuItem>Edit income</DropdownMenuItem>
               </Link>
 
-              <DropdownMenuItem onClick={() => handleDelete(item.categoryId)}>Delete category</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDelete(item.expenseId)}>Delete income</DropdownMenuItem>
               <DropdownMenuItem>View item details</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -132,9 +147,11 @@ export default function Page() {
     },
   ];
 
+  
+
   const table = useReactTable({
     // data,
-    data: categories?.data || [],
+    data: expenses?.data || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
