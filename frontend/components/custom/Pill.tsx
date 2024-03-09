@@ -10,7 +10,7 @@ export default function Pill({ value, className }: Props) {
   return (
     <Badge
       variant="outline"
-      className={`${className} w-16 flex items-center justify-center  border-none rounded-full`}>
+      className={`${className} w-16 flex items-center justify-center  border-none rounded-md`}>
       {value}
     </Badge>
   );
