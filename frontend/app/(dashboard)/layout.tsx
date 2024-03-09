@@ -108,7 +108,15 @@ const navItems = [
         title: "Expense Categories",
         href: "/expense-categories",
       },
+    ],
+  },
 
+  {
+    name: "Incomes Expenses",
+    icon: <User2 size={15} />,
+    href: "",
+
+    subLinks: [
       {
         title: "Incomes",
         href: "/incomes",

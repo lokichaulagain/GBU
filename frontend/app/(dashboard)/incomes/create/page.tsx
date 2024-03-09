@@ -7,46 +7,71 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { CldUploadWidget } from "next-cloudinary";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import categoryDefaultImage from "../../../../public/default-images/unit-default-image.png";
 import { toast } from "sonner";
-import { useCreateCategoryMutation } from "@/lib/features/categorySlice";
+import { useGetAllIncomeCategoryQuery } from "@/lib/features/incomeCategorySlice";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useCreateIncomeMutation } from "@/lib/features/incomeSlice";
 
 const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
+  incomeCategory: z.string().length(24, {
+    message: "Income category is rquired",
   }),
-  description: z.string().optional(),
+
+  amount: z.coerce.number().min(1, {
+    message: "Amount is rquired",
+  }),
+  paymentMethod: z.string(),
+  date: z.date().optional(),
+  note: z.string().optional(),
   image: z.string().optional(),
 });
 
 export default function Page() {
-  const [createCategory, { data, error, isLoading, status, isSuccess, isError }] = useCreateCategoryMutation();
-  const [imageUrl, setImageUrl] = useState<string>("");
+  const [createIncome, { data, error, isLoading, status, isSuccess, isError }] = useCreateIncomeMutation();
+  const { data: incomeCategories, isError: aa, isLoading: isFetching, refetch } = useGetAllIncomeCategoryQuery({});
+  const [imageUrl, setImageUrl] = useState<string | undefined>();
 
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      image: "",
+      incomeCategory: "",
+      amount: 0,
+      paymentMethod: "cash",
+      date: undefined,
+      note: "",
+      image: undefined,
     },
   });
 
-  // Define a submit handler.
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const res = await createCategory(values);
+      const res = await createIncome(values);
       toast(res.data.msg);
       form.reset();
-      setImageUrl("");
+      setImageUrl(undefined);
     } catch (error: any) {
       toast.warning(error.response.message);
     }
-  };
+  }
 
-  console.log();
+  //
+  // const { watch } = form;
+  // const watchedFields = watch();
+
+  // useEffect(() => {
+  //   console.log(watchedFields);
+  // }, [watchedFields]);
 
   return (
     <Form {...form}>
@@ -81,13 +106,47 @@ export default function Page() {
 
         <FormField
           control={form.control}
-          name="name"
+          name="incomeCategory"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Category Name *</FormLabel>
+              <FormLabel>Categories</FormLabel>
+              <FormControl>
+                <Select
+                  {...field}
+                  onValueChange={field.onChange}
+                  defaultValue={field.name}>
+                  <SelectTrigger className="">
+                    <SelectValue placeholder="Select Income Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Categories (Income)</SelectLabel>
+                      {incomeCategories?.data.map((item: any) => (
+                        <SelectItem
+                          key={item._id}
+                          value={item._id}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="amount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Amount </FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Category Name"
+                  type="number"
+                  placeholder="Amount in Rupees"
                   {...field}
                 />
               </FormControl>
@@ -98,13 +157,83 @@ export default function Page() {
 
         <FormField
           control={form.control}
-          name="description"
+          name="date"
+          render={({ field }) => (
+            <FormItem className=" flex flex-col gap-1">
+              <FormLabel>Received Date</FormLabel>
+              <FormControl>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button  className={cn("pl-3 text-left font-normal gap-2", !field.value && "text-primary-foreground")}>
+                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                      <CalendarIcon className="ml-auto h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-auto p-0"
+                    align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="paymentMethod"
+          render={({ field }) => (
+            <FormItem className=" flex flex-col gap-1">
+              <FormLabel>Payment Method</FormLabel>
+
+              <RadioGroup
+                onChange={field.onChange}
+                defaultValue="cash">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem
+                    value="cash"
+                    id="cash"
+                  />
+                  <Label htmlFor="cash">Cash</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem
+                    value="cheque"
+                    id="cheque"
+                  />
+                  <Label htmlFor="cheque">Cheque</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem
+                    value="online"
+                    id="online"
+                  />
+                  <Label htmlFor="online">Online</Label>
+                </div>
+              </RadioGroup>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="note"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Note</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Description"
+                <Textarea
+                  placeholder="Note"
                   {...field}
                 />
               </FormControl>

@@ -7,52 +7,73 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { CldUploadWidget } from "next-cloudinary";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import categoryDefaultImage from "../../../../public/default-images/unit-default-image.png";
 import { toast } from "sonner";
-import { useCreateCategoryMutation } from "@/lib/features/categorySlice";
-import { useGetAllExpenseCategoryQuery } from "@/lib/features/expenseCategorySlice";
+
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useGetAllExpenseCategoryQuery } from "@/lib/features/expenseCategorySlice";
+import { useCreateExpenseMutation } from "@/lib/features/expenseSlice";
+
 
 const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
+  expenseCategory: z.string().length(24, {
+    message: "Expense category is rquired",
   }),
-  description: z.string().optional(),
+
+  amount: z.coerce.number().min(1, {
+    message: "Amount is rquired",
+  }),
+  paymentMethod: z.string(),
+  date: z.date().optional(),
+  note: z.string().optional(),
   image: z.string().optional(),
 });
 
 export default function Page() {
-  const [createCategory, { data, error, isLoading, status, isSuccess, isError }] = useCreateCategoryMutation();
-  const [imageUrl, setImageUrl] = useState<string>("");
+  const [createExpense, { data, error, isLoading, status, isSuccess, isError }] = useCreateExpenseMutation();
+  const { data: expenseCategories, isError: aa, isLoading: isFetching, refetch } = useGetAllExpenseCategoryQuery({});
+  const [imageUrl, setImageUrl] = useState<string | undefined>();
 
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      image: "",
+      expenseCategory: "",
+      amount: 0,
+      paymentMethod: "cash",
+      date: undefined,
+      note: "",
+      image: undefined,
     },
   });
 
-  // Define a submit handler.
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log(values)
-      const res = await createCategory(values);
+      const res = await createExpense(values);
       toast(res.data.msg);
       form.reset();
-      setImageUrl("");
+      setImageUrl(undefined);
     } catch (error: any) {
       toast.warning(error.response.message);
     }
-  };
+  }
 
-  console.log();
+  //
+  // const { watch } = form;
+  // const watchedFields = watch();
 
-  const { data: expenseCategories } = useGetAllExpenseCategoryQuery({});
-  console.log(expenseCategories);
+  // useEffect(() => {
+  //   console.log(watchedFields);
+  // }, [watchedFields]);
 
   return (
     <Form {...form}>
@@ -85,56 +106,136 @@ export default function Page() {
           </CldUploadWidget>
         </FormItem>
 
-    
-
         <FormField
           control={form.control}
-          name="name"
+          name="expenseCategory"
           render={({ field }) => (
-            <Select {...field}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a fruit" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Fruits</SelectLabel>
-                  <SelectItem value="apple">Apple</SelectItem>
-                  <SelectItem value="banana">Banana</SelectItem>
-                  <SelectItem value="blueberry">Blueberry</SelectItem>
-                  <SelectItem value="grapes">Grapes</SelectItem>
-                  <SelectItem value="pineapple">Pineapple</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+            <FormItem>
+              <FormLabel>Categories</FormLabel>
+              <FormControl>
+                <Select
+                  {...field}
+                  onValueChange={field.onChange}
+                  defaultValue={field.name}>
+                  <SelectTrigger className="">
+                    <SelectValue placeholder="Select Expense Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Categories (Expense)</SelectLabel>
+                      {expenseCategories?.data.map((item: any) => (
+                        <SelectItem
+                          key={item._id}
+                          value={item._id}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
         />
 
-        {/* <FormField
+        <FormField
           control={form.control}
-          name="name"
+          name="amount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Category Name *</FormLabel>
+              <FormLabel>Amount </FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Category Name"
+                  type="number"
+                  placeholder="Amount in Rupees"
                   {...field}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
-        /> */}
+        />
 
         <FormField
           control={form.control}
-          name="description"
+          name="date"
+          render={({ field }) => (
+            <FormItem className=" flex flex-col gap-1">
+              <FormLabel>Received Date</FormLabel>
+              <FormControl>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button  className={cn("pl-3 text-left font-normal gap-2", !field.value && "text-primary-foreground")}>
+                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                      <CalendarIcon className="ml-auto h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-auto p-0"
+                    align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="paymentMethod"
+          render={({ field }) => (
+            <FormItem className=" flex flex-col gap-1">
+              <FormLabel>Payment Method</FormLabel>
+
+              <RadioGroup
+                onChange={field.onChange}
+                defaultValue="cash">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem
+                    value="cash"
+                    id="cash"
+                  />
+                  <Label htmlFor="cash">Cash</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem
+                    value="cheque"
+                    id="cheque"
+                  />
+                  <Label htmlFor="cheque">Cheque</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem
+                    value="online"
+                    id="online"
+                  />
+                  <Label htmlFor="online">Online</Label>
+                </div>
+              </RadioGroup>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="note"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Note</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Description"
+                <Textarea
+                  placeholder="Note"
                   {...field}
                 />
               </FormControl>
