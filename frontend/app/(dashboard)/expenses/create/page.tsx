@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { CldUploadWidget } from "next-cloudinary";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import categoryDefaultImage from "../../../../public/default-images/unit-default-image.png";
 import { toast } from "sonner";
 
@@ -22,7 +22,6 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useGetAllExpenseCategoryQuery } from "@/lib/features/expenseCategorySlice";
 import { useCreateExpenseMutation } from "@/lib/features/expenseSlice";
-
 
 const formSchema = z.object({
   expenseCategory: z.string().length(24, {
@@ -58,7 +57,7 @@ export default function Page() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const res = await createExpense(values);
+      const res: any = await createExpense(values);
       toast(res.data.msg);
       form.reset();
       setImageUrl(undefined);
@@ -80,171 +79,174 @@ export default function Page() {
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className=" space-y-8">
-        <FormItem>
-          <FormLabel>Category Image</FormLabel>
-          <CldUploadWidget
-            uploadPreset="notes-app-unsigned"
-            onSuccess={(results: any) => {
-              form.setValue("image", results.info.url);
-              setImageUrl(results.info.url);
-            }}>
-            {({ open }) => {
-              return (
-                <div
-                  onClick={() => open()}
-                  className=" w-32 h-32 border cursor-pointer border-neutral-600 border-dashed rounded-lg  flex items-center justify-center   ">
-                  <Image
-                    width={500}
-                    height={500}
-                    src={imageUrl || categoryDefaultImage}
-                    alt="img"
-                    className="p-2 rounded-md overflow-hidden h-32 w-32"
+        <div className=" grid grid-cols-2 gap-8">
+          <FormField
+            control={form.control}
+            name="expenseCategory"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Categories</FormLabel>
+                <FormControl>
+                  <Select
+                    {...field}
+                    onValueChange={field.onChange}
+                    defaultValue={field.name}>
+                    <SelectTrigger className="">
+                      <SelectValue placeholder="Select Expense Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Categories (Expense)</SelectLabel>
+                        {expenseCategories?.data.map((item: any) => (
+                          <SelectItem
+                            key={item._id}
+                            value={item._id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="amount"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Amount </FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Amount in Rupees"
+                    {...field}
                   />
-                </div>
-              );
-            }}
-          </CldUploadWidget>
-        </FormItem>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="expenseCategory"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Categories</FormLabel>
-              <FormControl>
-                <Select
-                  {...field}
-                  onValueChange={field.onChange}
-                  defaultValue={field.name}>
-                  <SelectTrigger className="">
-                    <SelectValue placeholder="Select Expense Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Categories (Expense)</SelectLabel>
-                      {expenseCategories?.data.map((item: any) => (
-                        <SelectItem
-                          key={item._id}
-                          value={item._id}>
-                          {item.name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="date"
+            render={({ field }) => (
+              <FormItem className=" flex flex-col gap-1">
+                <FormLabel>Received Date</FormLabel>
+                <FormControl>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button className={cn("pl-3 text-left font-normal gap-2", !field.value && "text-primary-foreground")}>
+                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                        <CalendarIcon className="ml-auto h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="w-auto p-0"
+                      align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="amount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Amount </FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Amount in Rupees"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="paymentMethod"
+            render={({ field }) => (
+              <FormItem className=" flex flex-col gap-1">
+                <FormLabel>Payment Method</FormLabel>
 
-        <FormField
-          control={form.control}
-          name="date"
-          render={({ field }) => (
-            <FormItem className=" flex flex-col gap-1">
-              <FormLabel>Received Date</FormLabel>
-              <FormControl>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button  className={cn("pl-3 text-left font-normal gap-2", !field.value && "text-primary-foreground")}>
-                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                      <CalendarIcon className="ml-auto h-4 w-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="w-auto p-0"
-                    align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      initialFocus
+                <RadioGroup
+                  className="flex gap-8"
+                  onChange={field.onChange}
+                  defaultValue="cash">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem
+                      value="cash"
+                      id="cash"
                     />
-                  </PopoverContent>
-                </Popover>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                    <Label htmlFor="cash">Cash</Label>
+                  </div>
 
-        <FormField
-          control={form.control}
-          name="paymentMethod"
-          render={({ field }) => (
-            <FormItem className=" flex flex-col gap-1">
-              <FormLabel>Payment Method</FormLabel>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem
+                      value="cheque"
+                      id="cheque"
+                    />
+                    <Label htmlFor="cheque">Cheque</Label>
+                  </div>
 
-              <RadioGroup
-                onChange={field.onChange}
-                defaultValue="cash">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem
-                    value="cash"
-                    id="cash"
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem
+                      value="online"
+                      id="online"
+                    />
+                    <Label htmlFor="online">Online</Label>
+                  </div>
+                </RadioGroup>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="note"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Note</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Note"
+                    {...field}
                   />
-                  <Label htmlFor="cash">Cash</Label>
-                </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem
-                    value="cheque"
-                    id="cheque"
-                  />
-                  <Label htmlFor="cheque">Cheque</Label>
-                </div>
+          <FormItem>
+            <FormLabel>Category Image</FormLabel>
+            <CldUploadWidget
+              uploadPreset="notes-app-unsigned"
+              onSuccess={(results: any) => {
+                form.setValue("image", results.info.url);
+                setImageUrl(results.info.url);
+              }}>
+              {({ open }) => {
+                return (
+                  <div
+                    onClick={() => open()}
+                    className=" w-14 h-14 border cursor-pointer border-neutral-600 border-dashed rounded-lg  flex items-center justify-center   ">
+                    <Image
+                      width={500}
+                      height={500}
+                      src={imageUrl || categoryDefaultImage}
+                      alt="img"
+                      className="p-2 rounded-md overflow-hidden h-14 w-14"
+                    />
+                  </div>
+                );
+              }}
+            </CldUploadWidget>
+          </FormItem>
 
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem
-                    value="online"
-                    id="online"
-                  />
-                  <Label htmlFor="online">Online</Label>
-                </div>
-              </RadioGroup>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="note"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Note</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Note"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button type="submit">Submit</Button>
+          <Button type="submit">Submit</Button>
+        </div>
       </form>
     </Form>
   );

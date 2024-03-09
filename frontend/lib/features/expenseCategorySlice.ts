@@ -4,8 +4,15 @@ export const expenseCategoryApi = createApi({
   reducerPath: "expenseCategory",
   baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:5008/api/expense-categories" }),
   endpoints: (builder) => ({
-    getAllExpenseCategory: builder.query({
-      query: () => "/",
+    getAllExpenseCategory: builder.query<any, { name: string }>({
+      query: (options) => {
+        const { name } = options;
+        const params = name ? { name } : {};
+        return {
+          url: "/",
+          params: params,
+        };
+      },
     }),
 
     getExpenseCategory: builder.query({

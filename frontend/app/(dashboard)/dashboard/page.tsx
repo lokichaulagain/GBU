@@ -1,12 +1,18 @@
-"use client"
-import BreadCum from "@/app/dashboard/components/BreadCum";
-import { MyTable } from "@/app/dashboard/components/MyTable";
+"use client";
+import CustomChart from "@/components/custom/CustomChart";
 
 export default function Page() {
   return (
-    <main className=" ">
-      <BreadCum />
-      <MyTable />
+    <main className=" grid grid-cols-2 gap-4">
+      <div className=" w-full h-64 border p-4 rounded-md">
+        <CustomChart />
+      </div>
+      <div className=" w-full h-64 border p-4 rounded-md">
+        <CustomChart />
+      </div>
+      <div className=" w-full h-64 border p-4 rounded-md">
+        <CustomChart />
+      </div>
     </main>
   );
 }

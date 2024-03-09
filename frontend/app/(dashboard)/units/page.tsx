@@ -9,11 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useDeleteUnitMutation, useGetAllUnitQuery } from "@/lib/unitSlice";
 import { IUnitOut } from "@/app/types/unit";
-import Image from "next/image";
-import defaultUnitImage from "../../../public/default-images/unit-default-image.png";
 import Link from "next/link";
 import { toast } from "sonner";
 import SpinLoader from "@/app/dashboard/components/SpinLoader";
+import CreateUnitPopover from "@/components/custom/unit/CreateUnitPopover";
+import ButtonActionLoader from "@/components/custom/ButtonActionLoader";
 
 export default function Page() {
   const { data: units, isError, isLoading: isFetching, refetch } = useGetAllUnitQuery({});
@@ -22,13 +22,13 @@ export default function Page() {
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
-  const [deleteUnit, { data, isError: add, isLoading: arr }] = useDeleteUnitMutation();
+  const [deleteUnit, { data: deleteData, isError: isDeleteError, isLoading: isDeleting }] = useDeleteUnitMutation();
 
   const handleDelete = async (id: string) => {
     try {
       const res: any = await deleteUnit(id);
-      toast(res.data.msg);
-      refetch(); // Refetch the data after successful deletion
+      toast.success(res.data.msg);
+      refetch();
     } catch (error: any) {
       toast.warning(error.response.message);
     }
@@ -77,24 +77,6 @@ export default function Page() {
     },
 
     {
-      accessorKey: "image",
-      header: "Image",
-      cell: ({ row }) => {
-        const imageUrl: string = row.getValue("image") as string;
-        return (
-          <div className="">
-            <Image
-              src={imageUrl || defaultUnitImage}
-              alt="Unit Image"
-              width={50}
-              height={50}
-            />
-          </div>
-        );
-      },
-    },
-
-    {
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
@@ -103,26 +85,36 @@ export default function Page() {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
+              {isDeleting ? (
+                <Button
+                  variant="ghost"
+                  className="h-8 w-8 p-0">
+                  <ButtonActionLoader size={14} />
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              )}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(item.unitId)}>Copy item ID</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  navigator.clipboard.writeText(item.unitId);
+                  toast.success("Copy cussess");
+                }}>
+                Copy unit id
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <Link href={`/units/view/${item.unitId}`}>
-                <DropdownMenuItem>View unit</DropdownMenuItem>
-              </Link>
-              <Link href={`/units/edit/${item.unitId}`}>
-                <DropdownMenuItem>Edit unit</DropdownMenuItem>
-              </Link>
 
+              <Link href={`/units/edit/${item.unitId}`}>
+                <DropdownMenuItem>View/Edit unit</DropdownMenuItem>
+              </Link>
               <DropdownMenuItem onClick={() => handleDelete(item.unitId)}>Delete unit</DropdownMenuItem>
-              <DropdownMenuItem>View item details</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -153,7 +145,6 @@ export default function Page() {
   if (isFetching) {
     return (
       <div>
-        {" "}
         <SpinLoader />
       </div>
     );
@@ -170,9 +161,8 @@ export default function Page() {
         />
 
         <div className=" space-x-2">
-          <Link href={"/units/create"}>
-            <Button>Add New</Button>
-          </Link>
+          <CreateUnitPopover refetch={refetch} />
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -233,7 +223,6 @@ export default function Page() {
             )}
           </TableBody>
         </Table>
-        {/* {isFetching && <p>Loading</p>} */}
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">

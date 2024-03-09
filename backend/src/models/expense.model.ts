@@ -24,7 +24,7 @@ const expenseSchema = new mongoose.Schema(
       unique: true,
       default: () => `expense_${nanoid()}`,
     },
-    category: { type: mongoose.Schema.Types.ObjectId, ref: "ExpenseCategory", required: true },
+    expenseCategory: { type: mongoose.Schema.Types.ObjectId, ref: "ExpenseCategory", required: true },
     amount: { type: Number, required: true },
     paymentMethod: { type: String, enum: ["cash", "cheque", "online"], required: true },
     date: { type: Date },

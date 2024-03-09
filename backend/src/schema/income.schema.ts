@@ -1,4 +1,4 @@
-import { date, number, object, string, TypeOf } from "zod";
+import { coerce, date, number, object, string, TypeOf } from "zod";
 
 // Define common schemas
 const payload = {
@@ -15,7 +15,8 @@ const payload = {
       required_error: "Payment Method is required",
     }),
 
-    date: date().optional(),
+    
+    date: coerce.date().optional(),
     note: string().optional(),
     image: string().optional(),
   }),

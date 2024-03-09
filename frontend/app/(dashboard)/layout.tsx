@@ -1,5 +1,4 @@
 "use client";
-import { INavItem } from "@/app/types/type";
 import { Home, Menu, Settings, User2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,8 +18,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {!isFullScreen && (
         <div className={`${isFullScreen ? "" : "w-2/12"}  h-screen overflow-y-scroll bg-primary p-4 text-primary-foreground `}>
           <p className=" text-3xl font-semibold  mb-8   ">Dashboard</p>
-          <div className=" space-y-5 tracking-wider   ">
-            {navItems.map((item: INavItem, index: number) => (
+          <div className=" space-y-4 tracking-wider   ">
+            {navItems.map((item: any, index: number) => (
               <CollapsibleTab
                 key={index}
                 item={item}
@@ -54,28 +53,7 @@ const navItems = [
     name: "Dashboard",
     icon: <Settings size={15} />,
     href: "/dashboard",
-  },
-
-  {
-    name: "Overview",
-    href: "",
-    icon: <Home size={15} />,
-    subLinks: [
-      {
-        title: "Dashboard",
-        href: "/dashboard",
-      },
-
-      {
-        title: "Users",
-        href: "/users",
-      },
-
-      {
-        title: "Categories",
-        href: "/categories",
-      },
-    ],
+    isTriggerDisable: true,
   },
 
   {
