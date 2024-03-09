@@ -22,8 +22,7 @@ export async function createExpenseHandler(req: Request<{}, {}, CreateExpenseInp
 
 export async function getAllExpenseHandler(req: Request<{}, {}, {}>, res: Response, next: NextFunction) {
   try {
-    const queryParameters = req.query; // /categories?status=active
-
+    const queryParameters = req.query; 
     const results = await findAllExpense(queryParameters);
     return res.json({
       status: "success",

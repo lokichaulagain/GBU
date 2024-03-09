@@ -8,12 +8,12 @@ export async function createIncome(input: IncomeInput) {
 }
 
 export async function findAllIncome(filter: FilterQuery<IncomeDocument> = {}) {
-  const results = await IncomeModel.find(filter);
+  const results = await IncomeModel.find(filter).populate("incomeCategory");
   return results;
 }
 
 export async function findIncome(query: FilterQuery<IncomeDocument>, options: QueryOptions = { lean: true }) {
-  const result = await IncomeModel.findOne(query, {}, options);
+  const result = await IncomeModel.findOne(query, {}, options).populate("incomeCategory");
   return result;
 }
 

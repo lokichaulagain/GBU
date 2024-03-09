@@ -9,8 +9,8 @@ import categoryRoute from "../src/routes/category.route";
 import typeRoute from "../src/routes/type.route";
 import unitRoute from "../src/routes/unit.route";
 
-import incomeRoute from "../src/routes/expense.route";
-import expenseRoute from "../src/routes/income.route";
+import incomeRoute from "../src/routes/income.route";
+import expenseRoute from "../src/routes/expense.route";
 
 import paymentInRoute from "../src/routes/paymentIn.route";
 import paymentOutRoute from "../src/routes/paymentOut.route";
@@ -53,7 +53,7 @@ app.use("/api/payments-out", paymentOutRoute);
 app.get("/healthChecker", (req: Request, res: Response, next: NextFunction) => {
   res.status(200).json({
     status: "success",
-    message: "Welcome to epeak Server.",
+    msg: "Welcome to epeak Server.",
   });
 });
 
@@ -71,7 +71,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
   res.status(err.statusCode).json({
     status: err.status,
-    message: err.message,
+    msg: err.msg,
   });
 });
 

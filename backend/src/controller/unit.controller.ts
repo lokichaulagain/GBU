@@ -4,13 +4,13 @@ import { CreateUnitInput, UpdateUnitInput } from "../schema/unit.schems";
 import { findUnit, createUnit, findAllUnit, findAndUpdateUnit, deleteUnit } from "../service/unit.service";
 var colors = require("colors");
 
-export async function createUnitHandler(req: Request<{}, {}, CreateUnitInput["body"]>, res: Response, next: NextFunction) {
+export async function createUnitHandler(req: Request<CreateUnitInput["body"]>, res: Response, next: NextFunction) {
   try {
     const body = req.body;
     const alreadyExist = await findUnit({ name: body.name });
 
     if (alreadyExist) {
-      next(new AppError(`Unit with the name (${body.name}) already exist`, 404));
+      next(new AppError(`Unit with the name (${body.name}) already exist`, 409));
       return;
     }
 

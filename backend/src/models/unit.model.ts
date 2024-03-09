@@ -3,7 +3,6 @@ import { nanoid } from "../utils/nanoid";
 
 export interface UnitInput {
   name: string;
-  image?: string;
   shortForm?: string;
 }
 
@@ -20,8 +19,7 @@ const unitSchema = new mongoose.Schema(
       unique: true,
       default: () => `unit_${nanoid()}`,
     },
-    name: { type: String, required: true },
-    image: { type: String },
+    name: { type: String, required: true, unique: true },
     shortForm: { type: String },
   },
   {

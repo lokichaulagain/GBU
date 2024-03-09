@@ -5,41 +5,36 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { CldUploadWidget } from "next-cloudinary";
-import Image from "next/image";
-import { useEffect, useState } from "react";
-import itemDefaultImage from "../../../../../public/default-images/unit-default-image.png";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
-import { useGetUnitQuery, useUpdateUnitMutation } from "@/lib/unitSlice";
+import { useGetAllUnitQuery, useGetUnitQuery, useUpdateUnitMutation } from "@/lib/unitSlice";
+import ButtonActionLoader from "@/components/custom/ButtonActionLoader";
+import SpinLoader from "@/app/dashboard/components/SpinLoader";
 
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "Name must be at least 2 characters.",
   }),
   shortForm: z.string().optional(),
-  image: z.string().optional(),
 });
 
 export default function Page() {
   const params = useParams();
   const unitId = params.id;
-  console.log(unitId);
 
-  const { data, isError, isLoading } = useGetUnitQuery(unitId);
+  const { data, isLoading: isFetching, refetch: singleUnitRefresh } = useGetUnitQuery(unitId);
   const unit = data?.data;
-  console.log(unit);
 
-  const [imageUrl, setImageUrl] = useState<string>("");
+  const { refetch } = useGetAllUnitQuery({});
 
-  const [updateUnit, { data: aa, isError: ab, isLoading: ac }] = useUpdateUnitMutation();
+  const [updateUnit, { error: updateError, isLoading: isUpdating }] = useUpdateUnitMutation();
   // 1. Define your form.
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       shortForm: "",
-      image: "",
     },
   });
 
@@ -48,53 +43,44 @@ export default function Page() {
       form.reset({
         name: unit.name || "",
         shortForm: unit.shortForm || "",
-        image: unit.image || "",
       });
-      setImageUrl(unit.image || "");
     }
   }, [form, unit]);
 
   // Define a submit handler.
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      const res:any = await updateUnit({ unitId: unitId, updatedUnit: values });
-      toast(res.data.msg);
-    } catch (error: any) {
-      toast.warning(error.response.message);
+    const res: any = await updateUnit({ unitId: unitId, updatedUnit: values });
+    if (res) {
+      toast.success(res.data.msg);
+      refetch();
+      singleUnitRefresh();
     }
   };
+
+  if (isFetching) {
+    return (
+      <div>
+        <SpinLoader />
+      </div>
+    );
+  }
+
+  if (updateError) {
+    if ("status" in updateError) {
+      const errMsg = "error" in updateError ? updateError.error : JSON.stringify(updateError.data);
+      const errorMsg = JSON.parse(errMsg).msg;
+      toast.error(errorMsg);
+    } else {
+      const errorMsg = updateError.message;
+      toast.error(errorMsg);
+    }
+  }
 
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className=" space-y-8">
-        <FormItem>
-          <FormLabel>Unit Image</FormLabel>
-          <CldUploadWidget
-            uploadPreset="notes-app-unsigned"
-            onSuccess={(results: any) => {
-              form.setValue("image", results.info.url);
-              setImageUrl(results.info.url);
-            }}>
-            {({ open }) => {
-              return (
-                <div
-                  onClick={() => open()}
-                  className=" h-32 border cursor-pointer border-neutral-600 w-1/12 border-dashed rounded-lg flex flex-col items-center justify-center ">
-                  <Image
-                    width={500}
-                    height={500}
-                    src={imageUrl || itemDefaultImage}
-                    alt="img"
-                    className="p-2 rounded-md overflow-hidden"
-                  />
-                </div>
-              );
-            }}
-          </CldUploadWidget>
-        </FormItem>
-
+        className=" grid grid-cols-2 gap-8 ">
         <FormField
           control={form.control}
           name="name"
@@ -129,7 +115,11 @@ export default function Page() {
           )}
         />
 
-        <Button type="submit">Submit</Button>
+        <Button
+          disabled={isUpdating}
+          type="submit">
+          {isUpdating && <ButtonActionLoader />} Submit
+        </Button>
       </form>
     </Form>
   );

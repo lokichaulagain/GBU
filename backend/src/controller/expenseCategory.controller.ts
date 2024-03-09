@@ -28,7 +28,8 @@ export async function createExpenseCategoryHandler(req: Request<{}, {}, CreateEx
 
 export async function getAllExpenseCategoryHandler(req: Request<{}, {}, {}>, res: Response, next: NextFunction) {
   try {
-    const queryParameters = req.query; // /categories?status=active
+    const queryParameters = req.query; 
+    console.log(queryParameters)
 
     const results = await findAllExpenseCategory(queryParameters);
     return res.json({
@@ -98,7 +99,7 @@ export async function deleteExpenseCategoryHandler(req: Request<UpdateExpenseCat
     }
 
     await deleteExpenseCategory({ expenseCategoryId });
-    return res.json({
+    return res.status(200).json({
       status: "success",
       msg: "Delete success",
       data: {},

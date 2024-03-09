@@ -6,7 +6,6 @@ const payload = {
     name: string({
       required_error: "Name is required",
     }),
-    image: string().optional(),
     shortForm: string().optional(),
   }),
 };
