@@ -14,7 +14,11 @@ import { toast } from "sonner";
 import SpinLoader from "@/app/dashboard/components/SpinLoader";
 import { ITypeOut } from "@/app/types/type";
 import { useGetAllTypeQuery, useDeleteTypeMutation } from "@/lib/features/typeSlice";
-
+import CreateTypePopover from "@/components/custom/type/CreateTypePopover";
+import ButtonActionLoader from "@/components/custom/ButtonActionLoader";
+import EditTypeDialog from "@/components/custom/type/EditTypeDialog";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import DeleteIcon from "@/components/custom/DeleteIcon";
 
 export default function Page() {
   const { data: types, isError, isLoading: isFetching, refetch } = useGetAllTypeQuery({});
@@ -23,15 +27,23 @@ export default function Page() {
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
-  const [deleteType, { data, isError: add, isLoading: arr }] = useDeleteTypeMutation();
+  const [currentSelectedTypeId, setCurrentSelectedTypeId] = React.useState<string>("");
+  console.log(currentSelectedTypeId);
+  const [deleteType, { data: deleteData, isError: isDeleteError, error: deleteError, isLoading: isDeleting }] = useDeleteTypeMutation();
+
+  const [open, setOpen] = React.useState(false);
+
+  const handleMoreClick = (typeId) => {
+    setCurrentSelectedTypeId(typeId); // Set the currentSelectedTypeId state with the typeId of the clicked item
+    // setOpen(true); // Open the dropdown menu
+  };
 
   const handleDelete = async (id: string) => {
-    try {
-      const res: any = await deleteType(id);
-      toast(res.data.msg);
-      refetch(); // Refetch the data after successful deletion
-    } catch (error: any) {
-      toast.warning(error.response.message);
+    const res: any = await deleteType(id);
+    console.log(res);
+    if (res.data) {
+      toast.success(res.data.msg);
+      refetch();
     }
   };
 
@@ -72,9 +84,9 @@ export default function Page() {
     },
 
     {
-      accessorKey: "description",
-      header: "Description",
-      cell: ({ row }) => <div className="capitalize">{row.getValue("description")}</div>,
+      accessorKey: "typeId",
+      header: "Type Id",
+      cell: ({ row }) => <div>{row.getValue("typeId") || "NA"}</div>,
     },
 
     {
@@ -87,8 +99,8 @@ export default function Page() {
             <Image
               src={imageUrl || defaultImage}
               alt="Type Image"
-              width={50}
-              height={50}
+              width={30}
+              height={30}
             />
           </div>
         );
@@ -100,32 +112,36 @@ export default function Page() {
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
+        console.log(item);
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(item.typeId)}>Copy item ID</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <Link href={`/types/view/${item.typeId}`}>
-                <DropdownMenuItem>View type</DropdownMenuItem>
-              </Link>
-              <Link href={`/types/edit/${item.typeId}`}>
-                <DropdownMenuItem>Edit type</DropdownMenuItem>
-              </Link>
+          <div onClick={() => setCurrentSelectedTypeId(item.typeId)}>
+              <EditTypeDialog  currentSelectedTypeId={currentSelectedTypeId} />
+            </div>
+          // <DropdownMenu>
+          //   {/* <DropdownMenuTrigger asChild></DropdownMenuTrigger> */}
+            
+          //   <DropdownMenuContent align="end">
+          //     <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          //     <DropdownMenuItem onClick={() => navigator.clipboard.writeText(item.typeId)}>Copy item ID</DropdownMenuItem>
+          //     <DropdownMenuSeparator />
+          //     <Link href={`/types/view/${item.typeId}`}>
+          //       <DropdownMenuItem>View type</DropdownMenuItem>
+          //     </Link>
+          //     <Link href={`/types/edit/${item.typeId}`}>
+          //       <DropdownMenuItem>Edit type</DropdownMenuItem>
+          //     </Link>
 
-              <DropdownMenuItem onClick={() => handleDelete(item.typeId)}>Delete type</DropdownMenuItem>
-              <DropdownMenuItem>View item details</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          //     <DropdownMenuItem onSelect={(e: any) => e.preventDefault()}>dfdfdf</DropdownMenuItem>
+
+          //     <DropdownMenuItem onSelect={(e: any) => e.preventDefault()}>
+          //       <EditTypeDialog />
+          //     </DropdownMenuItem>
+
+          //     <DropdownMenuItem onClick={() => handleDelete(item.typeId)}>Delete</DropdownMenuItem>
+          //     <DropdownMenuItem>View item details</DropdownMenuItem>
+          //   </DropdownMenuContent>
+          // </DropdownMenu>
         );
       },
     },
@@ -154,7 +170,6 @@ export default function Page() {
   if (isFetching) {
     return (
       <div>
-        {" "}
         <SpinLoader />
       </div>
     );
@@ -171,9 +186,8 @@ export default function Page() {
         />
 
         <div className=" space-x-2">
-          <Link href={"/types/create"}>
-            <Button>Add New</Button>
-          </Link>
+          <CreateTypePopover />
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

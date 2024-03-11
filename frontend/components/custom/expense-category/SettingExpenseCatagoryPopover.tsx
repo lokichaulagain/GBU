@@ -24,8 +24,11 @@ type Props = {
 };
 
 export default function SettingExpenseCatagoryPopover({ currentSelectedCategoryId, refetch }: Props) {
+  console.log(currentSelectedCategoryId)
   const { data, isError, isLoading } = useGetExpenseCategoryQuery(currentSelectedCategoryId);
   const expenseCategory = data?.data;
+
+  console.log(expenseCategory)
 
   const [updateExpenseCategory, { data: a, isError: ab, isLoading: abc }] = useUpdateExpenseCategoryMutation();
   // 1. Define your form.
