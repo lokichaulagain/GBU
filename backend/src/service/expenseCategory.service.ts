@@ -7,6 +7,10 @@ export async function createExpenseCategory(input: ExpenseCategoryInput) {
 }
 
 export async function findAllExpenseCategory(filter: FilterQuery<ExpenseCategoryDocument> = {}) {
+  // Converting the name value to a case-insensitive regex pattern
+  if (filter.name) {
+    filter.name = { $regex: new RegExp(filter.name, "i") };
+  }
   const results = await ExpenseCategoryModel.find(filter);
   return results;
 }

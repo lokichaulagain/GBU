@@ -67,6 +67,12 @@ export default function Page() {
     },
 
     {
+      accessorKey: "amount",
+      header: "Amount (Rs) ",
+      cell: ({ row }) => <div className="capitalize">Rs. {row.getValue("amount")}</div>,
+    },
+
+    {
       accessorKey: "note",
       header: "Note",
       cell: ({ row }) => <div className="capitalize">Rs. {row.getValue("note")}</div>,
@@ -107,8 +113,8 @@ export default function Page() {
             <Image
               src={imageUrl || defaultImage}
               alt="Income Image"
-              width={50}
-              height={50}
+              width={30}
+              height={30}
             />
           </div>
         );
