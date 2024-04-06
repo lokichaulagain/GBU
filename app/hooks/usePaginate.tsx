@@ -8,7 +8,7 @@
 //   return { from, to };
 // };
 
-export const usePaginate = (page, size) => {
+export const usePaginate = (page:number, size:number) => {
     const limit = size ? +size : 3;
     const from = page ? page * limit : 10;
     const to = page ? from + size : size;
