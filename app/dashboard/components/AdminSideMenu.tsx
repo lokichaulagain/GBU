@@ -1,5 +1,4 @@
 "use client";
-import { INavItem } from "@/app/types/type";
 import CollapsibleTab from "./CollapsibleTab";
 import { MyTable } from "./MyTable";
 import { Home, Menu, Settings, User2 } from "lucide-react";
@@ -22,7 +21,7 @@ export default function AdminSideMenu({}: Props) {
         <div className={`${isFullScreen ? "" : "w-2/12"}  h-screen overflow-y-scroll bg-slate-800 p-4`}>
           <p className=" text-3xl font-semibold  mb-8 text-gray-200 ">Dashboard</p>
           <div className=" space-y-5 tracking-wider text-gray-400 ">
-            {navItems.map((item: INavItem, index: number) => (
+            {navItems.map((item: any, index: number) => (
               <CollapsibleTab
                 key={index}
                 item={item}

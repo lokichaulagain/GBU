@@ -10,7 +10,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { paramsToSign } = body;
 
-  const signature = cloudinary.utils.api_sign_request(paramsToSign, api_secret);
+  const signature = cloudinary.utils.api_sign_request(paramsToSign, "U2nmNgWYyyFdtOPFybkkK-_IwPE");
 
   return Response.json({ signature });
 }

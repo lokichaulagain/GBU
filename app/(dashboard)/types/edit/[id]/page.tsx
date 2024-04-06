@@ -14,8 +14,8 @@ import ButtonActionLoader from "@/components/custom/ButtonActionLoader";
 import { supabase } from "@/app/dashboard/components/sheets/AdminCreateSheet";
 import OptionalLabel from "@/components/custom/OptionalLabel";
 import { ReloadIcon } from "@radix-ui/react-icons";
-import { DynamicBreadcrumb } from "@/components/DynamicBreadcrumb";
 import { useParams } from "next/navigation";
+import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
 
 const formSchema = z.object({
   name: z.string().min(2, {
