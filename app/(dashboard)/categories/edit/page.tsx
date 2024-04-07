@@ -9,12 +9,14 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import useCloudinaryFileUpload from "@/app/hooks/useCloudinaryFileUpload";
 import Image from "next/image";
-import defaultImage from "../../../../public/default-images/unit-default-image.png";
+import defaultImage from "../../../../../public/default-images/unit-default-image.png";
 import ButtonActionLoader from "@/components/custom/ButtonActionLoader";
 import { supabase } from "@/app/dashboard/components/sheets/AdminCreateSheet";
 import OptionalLabel from "@/components/custom/OptionalLabel";
 import { ReloadIcon } from "@radix-ui/react-icons";
+import { useParams } from "next/navigation";
 import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
+import { ICategoryOut } from "@/app/types/category";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -26,6 +28,31 @@ const formSchema = z.object({
 
 export default function Page1() {
   const [imageUrl, setImageUrl] = useState<string>("");
+  const params: any = useParams();
+  const id = parseFloat(params.id);
+  console.log(id);
+
+  const [isFetching, setIsFetching] = useState<boolean>(false);
+  const [category, setCategory] = useState<ICategoryOut>();
+
+  const [refetch, setRefetch] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchCategory = async () => {
+      try {
+        setIsFetching(true);
+        let { data: Category, error } = await supabase.from("Category").select().eq("id", id).single();
+        setCategory(Category);
+        setRefetch(false);
+      } catch (error) {
+        console.error("Failed to fetch category");
+      } finally {
+        setIsFetching(false);
+      }
+    };
+    fetchCategory();
+  }, [id, refetch]);
+
 
   // Define your form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -37,31 +64,46 @@ export default function Page1() {
     },
   });
 
+  useEffect(() => {
+    if (category) {
+      form.reset({
+        name: category.name || "",
+        desc: category.desc || "",
+        image: category.image || "",
+      });
+      setImageUrl(category.image || "");
+    }
+  }, [form, category]);
+
+  useEffect(() => {
+    form.setValue("image", imageUrl);
+  }, [form, imageUrl]);
+
   // Define a submit handler
-  const [isCreating, setIsCreating] = useState<boolean>(false);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      setIsCreating(true);
-      const { data, error, status } = await supabase.from("Type").insert([values]).select();
+      setIsUpdating(true);
+      const { data, error, status } = await supabase.from("Category").update(values).eq("id", id).select();
 
-      if (error || status !== 201) {
-        throw new Error("Failed to create type");
+      if (error || status !== 200) {
+        throw new Error("Failed to update category");
       }
 
-      toast.success("Type created successfully");
+      toast.success("Category updated successfully");
       form.reset();
       setImageUrl("");
+      setRefetch(true);
     } catch (error) {
-      toast.error("Failed to create type");
+      toast.error("Failed to update category");
     } finally {
-      setIsCreating(false);
+      setIsUpdating(false);
     }
   };
 
   useEffect(() => {
     form.setValue("image", imageUrl);
   }, [form, imageUrl]);
-  
 
   const { uploading, handleFileUpload } = useCloudinaryFileUpload();
 
@@ -70,8 +112,8 @@ export default function Page1() {
       <DynamicBreadcrumb
         items={[
           { name: "Dashboard", link: "/dashboard" },
-          { name: "Types", link: "/types" },
-          { name: "Create", link: "/types/create", isCurrentPage: true},
+          { name: "Categories", link: "/categories" },
+          { name: "Edit", link: "/categories/edit", isCurrentPage: true },
         ]}
       />
 
@@ -83,9 +125,9 @@ export default function Page1() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Type Name *</FormLabel>
+              <FormLabel>Category Name *</FormLabel>
               <Input
-                placeholder="Type Name"
+                placeholder="Category Name"
                 {...field}
               />
               <FormMessage />
@@ -107,7 +149,7 @@ export default function Page1() {
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="image"
@@ -145,13 +187,12 @@ export default function Page1() {
         <div className=" mt-8 space-x-2">
           <Button
             type="submit"
-            disabled={isCreating}>
-            {isCreating && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
-            {isCreating ? " Please wait" : " Create Type"}
+            disabled={isUpdating}>
+            {isUpdating && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
+            {isUpdating ? " Please wait" : " Update Category"}
           </Button>
         </div>
       </form>
     </Form>
   );
 }
-
