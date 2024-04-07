@@ -42,17 +42,17 @@ export default function Page1() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsCreating(true);
-      const { data, error, status } = await supabase.from("Type").insert([values]).select();
+      const { data, error, status } = await supabase.from("Category").insert([values]).select();
 
       if (error || status !== 201) {
-        throw new Error("Failed to create type");
+        throw new Error("Failed to create category");
       }
 
-      toast.success("Type created successfully");
+      toast.success("Category created successfully");
       form.reset();
       setImageUrl("");
     } catch (error) {
-      toast.error("Failed to create type");
+      toast.error("Failed to create category");
     } finally {
       setIsCreating(false);
     }
@@ -70,8 +70,8 @@ export default function Page1() {
       <DynamicBreadcrumb
         items={[
           { name: "Dashboard", link: "/dashboard" },
-          { name: "Types", link: "/types" },
-          { name: "Create", link: "/types/create", isCurrentPage: true},
+          { name: "Categories", link: "/categories" },
+          { name: "Create", link: "/categories/create", isCurrentPage: true},
         ]}
       />
 
@@ -83,9 +83,9 @@ export default function Page1() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Type Name *</FormLabel>
+              <FormLabel>Category Name *</FormLabel>
               <Input
-                placeholder="Type Name"
+                placeholder="Category Name"
                 {...field}
               />
               <FormMessage />
@@ -147,7 +147,7 @@ export default function Page1() {
             type="submit"
             disabled={isCreating}>
             {isCreating && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
-            {isCreating ? " Please wait" : " Create Type"}
+            {isCreating ? " Please wait" : " Create Category"}
           </Button>
         </div>
       </form>

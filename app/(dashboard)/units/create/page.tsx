@@ -5,14 +5,10 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import useCloudinaryFileUpload from "@/app/hooks/useCloudinaryFileUpload";
-import Image from "next/image";
-import defaultImage from "../../../../public/default-images/unit-default-image.png";
-import ButtonActionLoader from "@/components/custom/ButtonActionLoader";
 import { supabase } from "@/app/dashboard/components/sheets/AdminCreateSheet";
-import OptionalLabel from "@/components/custom/OptionalLabel";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
 
@@ -20,20 +16,16 @@ const formSchema = z.object({
   name: z.string().min(2, {
     message: "Name must be at least 2 characters.",
   }),
-  desc: z.string().optional(),
-  image: z.string().optional(),
+  shortForm: z.string().optional(),
 });
 
 export default function Page1() {
-  const [imageUrl, setImageUrl] = useState<string>("");
-
   // Define your form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      desc: "",
-      image: "",
+      shortForm: "",
     },
   });
 
@@ -42,26 +34,20 @@ export default function Page1() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsCreating(true);
-      const { data, error, status } = await supabase.from("Type").insert([values]).select();
+      const { data, error, status } = await supabase.from("Unit").insert([values]).select();
 
       if (error || status !== 201) {
-        throw new Error("Failed to create type");
+        throw new Error("Failed to create unit");
       }
 
-      toast.success("Type created successfully");
+      toast.success("Unit created successfully");
       form.reset();
-      setImageUrl("");
     } catch (error) {
-      toast.error("Failed to create type");
+      toast.error("Failed to create unit");
     } finally {
       setIsCreating(false);
     }
   };
-
-  useEffect(() => {
-    form.setValue("image", imageUrl);
-  }, [form, imageUrl]);
-  
 
   const { uploading, handleFileUpload } = useCloudinaryFileUpload();
 
@@ -70,8 +56,8 @@ export default function Page1() {
       <DynamicBreadcrumb
         items={[
           { name: "Dashboard", link: "/dashboard" },
-          { name: "Types", link: "/types" },
-          { name: "Create", link: "/types/create", isCurrentPage: true},
+          { name: "Units", link: "/units" },
+          { name: "Create", link: "/units/create", isCurrentPage: true },
         ]}
       />
 
@@ -83,9 +69,9 @@ export default function Page1() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Type Name *</FormLabel>
+              <FormLabel>Unit Name *</FormLabel>
               <Input
-                placeholder="Type Name"
+                placeholder="Unit Name"
                 {...field}
               />
               <FormMessage />
@@ -95,49 +81,15 @@ export default function Page1() {
 
         <FormField
           control={form.control}
-          name="desc"
+          name="shortForm"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Short Form</FormLabel>
               <Input
-                placeholder="Description"
+                placeholder="Short Form "
                 {...field}
               />
               <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="image"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Image <OptionalLabel /> <span className="text-primary/85  text-xs">[image must be less than 1MB]</span>
-              </FormLabel>
-              <div className=" flex items-center  gap-2">
-                <Input
-                  type="file"
-                  onChange={(event) => handleFileUpload(event.target.files?.[0], setImageUrl)}
-                />
-
-                <>
-                  {uploading ? (
-                    <div className=" flex flex-col gap-2 rounded-md items-center justify-center h-9 w-9 border">
-                      <ButtonActionLoader />
-                    </div>
-                  ) : (
-                    <Image
-                      width={100}
-                      height={100}
-                      src={imageUrl || defaultImage}
-                      alt="img"
-                      className="p-0.5 rounded-md overflow-hidden h-9 w-9 border"
-                    />
-                  )}
-                </>
-              </div>
             </FormItem>
           )}
         />
@@ -147,11 +99,10 @@ export default function Page1() {
             type="submit"
             disabled={isCreating}>
             {isCreating && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
-            {isCreating ? " Please wait" : " Create Type"}
+            {isCreating ? " Please wait" : " Create Unit"}
           </Button>
         </div>
       </form>
     </Form>
   );
 }
-

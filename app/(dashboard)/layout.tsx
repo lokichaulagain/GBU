@@ -1,5 +1,5 @@
 "use client";
-import { Home, Menu, Settings, User2 } from "lucide-react";
+import {  Menu, Settings, User2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import CollapsibleTab from "../dashboard/components/CollapsibleTab";
@@ -16,8 +16,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className=" flex">
       {!isFullScreen && (
-        <div className={`${isFullScreen ? "" : "w-2/12"}  h-screen overflow-y-scroll bg-primary p-4 text-primary-foreground `}>
-          <p className=" text-3xl font-semibold  mb-8   ">Dashboard</p>
+        <div className={`${isFullScreen ? "" : "w-2/12"}  h-screen overflow-y-scroll  p-4`}>
+          <p className=" text-3xl font-semibold  mb-8   ">Global Baluwa</p>
           <div className=" space-y-4 tracking-wider   ">
             {navItems.map((item: any, index: number) => (
               <CollapsibleTab
@@ -64,7 +64,7 @@ const navItems = [
     subLinks: [
       {
         title: "Units",
-        href: "/",
+        href: "/units",
       },
 
       {
