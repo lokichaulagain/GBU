@@ -16,11 +16,12 @@ import defaultImg from "../../../public/default-images/unit-default-image.png";
 import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
 import Image from "next/image";
 import { usePaginate } from "@/app/hooks/usePaginate";
-import { ICategoryOut } from "@/app/types/category";
+import { IPartyOut } from "@/app/types/party";
 
 export default function Page() {
   const [refreshNow, setRefreshNow] = useState(false);
-  const [categories, setCategories] = React.useState<ICategoryOut[]>([]);
+  // const [categories, setCategories] = React.useState<IPartyOut[]>([]);
+  const [categories, setCategories] = React.useState<any[]>([]);
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -28,25 +29,28 @@ export default function Page() {
 
   React.useEffect(() => {
     const fetch = async () => {
-      let { data, error } = await supabase.from("Category").select("*");
+      let { data, error } = await supabase.from("Party").select("*").select(`
+      *,
+      type (id, name)
+      `);
       setCategories(data || []);
     };
     fetch();
   }, [currentPage, from, refreshNow, to]);
 
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const deleteCategory = async (id: number) => {
+  const deleteParty = async (id: number) => {
     try {
       setIsDeleting(true);
-      const { error, data, status } = await supabase.from("Category").delete().eq("id", id);
+      const { error, data, status } = await supabase.from("Party").delete().eq("id", id);
 
       setRefreshNow(!refreshNow);
       if (error || status !== 204) {
-        throw new Error("Failed to delete category");
+        throw new Error("Failed to delete party");
       }
-      toast.success(isDeleting ? "Category deleting" : "Category deleted successfully");
+      toast.success(isDeleting ? "Party deleting" : "Party deleted successfully");
     } catch (error) {
-      toast.error("Failed to delete category");
+      toast.error("Failed to delete party");
     } finally {
       setIsDeleting(false);
     }
@@ -57,7 +61,7 @@ export default function Page() {
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
-  const columns: ColumnDef<ICategoryOut>[] = [
+  const columns: ColumnDef<IPartyOut>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -138,12 +142,12 @@ export default function Page() {
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
               <Link href={`/categories/edit/${item.id}`}>
-                <DropdownMenuItem>Edit category</DropdownMenuItem>
+                <DropdownMenuItem>Edit party</DropdownMenuItem>
               </Link>
 
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <span className=" flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"> Delete category</span>
+                  <span className=" flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"> Delete party</span>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
@@ -154,7 +158,7 @@ export default function Page() {
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       className=" bg-red-500/90"
-                      onClick={() => deleteCategory(item.id)}>
+                      onClick={() => deleteParty(item.id)}>
                       Continue
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -206,7 +210,7 @@ export default function Page() {
 
         <div className=" space-x-2">
           <Link href={"/categories/create"}>
-            <Button>Create Category</Button>
+            <Button>Create Party</Button>
           </Link>
 
           <DropdownMenu>
