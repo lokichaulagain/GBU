@@ -26,6 +26,7 @@ const formSchema = z.object({
 
 export default function Page1() {
   const [imageUrl, setImageUrl] = useState<string>("");
+  const { uploading, handleFileUpload } = useCloudinaryFileUpload();
 
   // Define your form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -61,9 +62,6 @@ export default function Page1() {
   useEffect(() => {
     form.setValue("image", imageUrl);
   }, [form, imageUrl]);
-  
-
-  const { uploading, handleFileUpload } = useCloudinaryFileUpload();
 
   return (
     <Form {...form}>
@@ -71,7 +69,7 @@ export default function Page1() {
         items={[
           { name: "Dashboard", link: "/dashboard" },
           { name: "Types", link: "/types" },
-          { name: "Create", link: "/types/create", isCurrentPage: true},
+          { name: "Create", link: "/types/create", isCurrentPage: true },
         ]}
       />
 
@@ -107,7 +105,7 @@ export default function Page1() {
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="image"
@@ -154,4 +152,3 @@ export default function Page1() {
     </Form>
   );
 }
-

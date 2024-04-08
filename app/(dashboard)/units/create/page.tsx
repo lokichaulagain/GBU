@@ -19,7 +19,7 @@ const formSchema = z.object({
   shortForm: z.string().optional(),
 });
 
-export default function Page1() {
+export default function Page() {
   // Define your form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -49,7 +49,6 @@ export default function Page1() {
     }
   };
 
-  const { uploading, handleFileUpload } = useCloudinaryFileUpload();
 
   return (
     <Form {...form}>
