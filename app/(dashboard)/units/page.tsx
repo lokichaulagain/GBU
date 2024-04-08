@@ -4,7 +4,7 @@ import { CaretSortIcon, ChevronDownIcon, DotsHorizontalIcon } from "@radix-ui/re
 import { ColumnDef, ColumnFiltersState, SortingState, VisibilityState, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/app/dashboard/components/sheets/AdminCreateSheet";
@@ -12,27 +12,25 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useState } from "react";
-import defaultImg from "../../../public/default-images/unit-default-image.png";
 import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
-import Image from "next/image";
-import { usePaginate } from "@/app/hooks/usePaginate";
 import { IUnitOut } from "@/app/types/unit";
+import moment from "moment";
 
 export default function Page() {
   const [refreshNow, setRefreshNow] = useState(false);
   const [units, setUnits] = React.useState<IUnitOut[]>([]);
 
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const { from, to } = usePaginate(currentPage, 10);
-
   React.useEffect(() => {
     const fetch = async () => {
       let { data, error } = await supabase.from("Unit").select("*");
+      if (error) {
+        throw new Error("Failed to fetch units");
+      }
+
       setUnits(data || []);
     };
     fetch();
-  }, [currentPage, from, refreshNow, to]);
+  }, [refreshNow]);
 
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const deleteUnit = async (id: number) => {
@@ -40,10 +38,11 @@ export default function Page() {
       setIsDeleting(true);
       const { error, data, status } = await supabase.from("Unit").delete().eq("id", id);
 
-      setRefreshNow(!refreshNow);
       if (error || status !== 204) {
         throw new Error("Failed to delete unit");
       }
+
+      setRefreshNow(!refreshNow);
       toast.success(isDeleting ? "Unit deleting" : "Unit deleted successfully");
     } catch (error) {
       toast.error("Failed to delete unit");
@@ -102,7 +101,7 @@ export default function Page() {
     {
       accessorKey: "created_at",
       header: "Created Date",
-      cell: ({ row }) => <div className="capitalize">{row.getValue("created_at")}</div>,
+      cell: ({ row }) => <div className="capitalize">{moment(row.getValue("created_at")).format("MMM Do YY")}</div>,
     },
 
     {
@@ -268,18 +267,15 @@ export default function Page() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(currentPage - 1)}
-            // onClick={handlePreviousPage}
-            // disabled={currentPage === 1}
-          >
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}>
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(currentPage + 1)}
-            // disabled={currentPage === totalPages}
-          >
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}>
             Next
           </Button>
         </div>

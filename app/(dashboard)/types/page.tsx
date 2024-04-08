@@ -16,31 +16,29 @@ import defaultImg from "../../../public/default-images/unit-default-image.png";
 import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
 import Image from "next/image";
 import { ITypeOut } from "@/app/types/type";
-import { usePaginate } from "@/app/hooks/usePaginate";
 
 export default function Page() {
   const [refreshNow, setRefreshNow] = useState(false);
-  
-  const [currentPage, setCurrentPage] = useState(1);
-  
-  const { from, to } = usePaginate(currentPage, 10);
-  
+
   const [types, setTypes] = React.useState<ITypeOut[]>([]);
   React.useEffect(() => {
     const fetch = async () => {
       let { data, error } = await supabase.from("Type").select("*");
+      if (error) {
+        throw new Error("Failed to fetch types");
+      }
       setTypes(data || []);
     };
     fetch();
-  }, [currentPage, from, refreshNow, to]);
+  }, [refreshNow]);
 
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const deleteType = async (id: number) => {
     try {
       setIsDeleting(true);
       const { error, data, status } = await supabase.from("Type").delete().eq("id", id);
-
       setRefreshNow(!refreshNow);
+
       if (error || status !== 204) {
         throw new Error("Failed to delete type");
       }
@@ -276,20 +274,19 @@ export default function Page() {
         </div>
 
         <div className="space-x-2">
-          <Button
+        <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(currentPage - 1)}
-            // onClick={handlePreviousPage}
-            // disabled={currentPage === 1}
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
           >
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(currentPage + 1)}
-            // disabled={currentPage === totalPages}
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
           >
             Next
           </Button>

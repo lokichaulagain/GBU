@@ -1,26 +1,31 @@
 "use client";
-import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import useCloudinaryFileUpload from "@/app/hooks/useCloudinaryFileUpload";
-import Image from "next/image";
-import defaultImage from "../../../../public/default-images/unit-default-image.png";
-import ButtonActionLoader from "@/components/custom/ButtonActionLoader";
 import { supabase } from "@/app/dashboard/components/sheets/AdminCreateSheet";
+import { ReloadIcon } from "@radix-ui/react-icons";
+import { useParams } from "next/navigation";
+import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
+import { IPartyOut } from "@/app/types/party";
+import Image from "next/image";
+import ButtonActionLoader from "@/components/custom/ButtonActionLoader";
+import OptionalLabel from "@/components/custom/OptionalLabel";
+
+
+
 import OptionalLabel from "@/components/custom/OptionalLabel";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ITypeOut } from "@/app/types/type";
 
@@ -51,17 +56,32 @@ const formSchema = z.object({
 });
 
 export default function Page() {
-  const [types, setTypes] = React.useState<ITypeOut[]>([]);
-  React.useEffect(() => {
-    const fetch = async () => {
-      let { data, error } = await supabase.from("Type").select("*");
-      setTypes(data || []);
-    };
-    fetch();
-  }, []);
-  console.log(types);
+  const params = useParams() as { id: string };
+  const id = parseFloat(params.id);
 
-  const [imageUrl, setImageUrl] = useState<string>("");
+  const [isFetching, setIsFetching] = useState<boolean>(false);
+  const [party, setParty] = useState<IPartyOut>();
+
+  const [refetch, setRefetch] = useState<boolean>(false);
+  useEffect(() => {
+    const fetchParty = async () => {
+      setIsFetching(true);
+      try {
+        const { data: Party, error } = await supabase.from("Party").select().eq("id", id).single();
+        if (error) {
+          throw new Error("Failed to fetch type");
+        }
+        setParty(Party);
+        setRefetch(false);
+      } catch (error) {
+        console.error("Failed to fetch type:", error);
+      } finally {
+        setIsFetching(false);
+      }
+    };
+
+    fetchParty();
+  }, [id, refetch]);
 
   // Define your form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -79,46 +99,54 @@ export default function Page() {
     },
   });
 
-  // console.log(form.getValues());
+  useEffect(() => {
+    if (party) {
+      form.reset({
+        name: party.name || "",
+        phone: party.phone || "",
+        type: party.type || 0,
+        openingBalance: party.openingBalance || 0,
+        openingBalanceDate: party.openingBalanceDate || new Date(),
+        address: party.address || "",
+        email: party.email || "",
+        panNumber: party.panNumber || "",
+        image: party.image || "",
+      });
+    }
+  }, [form, party]);
 
   // Define a submit handler
-  const [isCreating, setIsCreating] = useState<boolean>(false);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      setIsCreating(true);
-      const { data, error, status } = await supabase.from("Party").insert([values]).select();
+      setIsUpdating(true);
+      const { data, error, status } = await supabase.from("Party").update(values).eq("id", id).select();
 
-      if (error || status !== 201) {
-        throw new Error("Failed to create party");
+      if (error || status !== 200) {
+        throw new Error("Failed to update party");
       }
 
-      toast.success("Party created successfully");
+      toast.success("Party updated successfully");
       form.reset();
-      setImageUrl("");
+      setRefetch(true);
     } catch (error) {
-      toast.error("Failed to create party");
+      toast.error("Failed to update party");
     } finally {
-      setIsCreating(false);
+      setIsUpdating(false);
     }
   };
-
-  useEffect(() => {
-    form.setValue("image", imageUrl);
-  }, [form, imageUrl]);
-
-  const { uploading, handleFileUpload } = useCloudinaryFileUpload();
 
   return (
     <Form {...form}>
       <DynamicBreadcrumb
         items={[
           { name: "Dashboard", link: "/dashboard" },
-          { name: "Categories", link: "/categories" },
-          { name: "Create", link: "/categories/create", isCurrentPage: true },
+          { name: "Parties", link: "/parties" },
+          { name: "Edit", link: "/parties/edit", isCurrentPage: true },
         ]}
       />
 
-      <form
+<form
         onSubmit={form.handleSubmit(onSubmit)}
         className=" grid grid-cols-2 gap-4">
         <FormField

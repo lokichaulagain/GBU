@@ -4,7 +4,7 @@ import { CaretSortIcon, ChevronDownIcon, DotsHorizontalIcon } from "@radix-ui/re
 import { ColumnDef, ColumnFiltersState, SortingState, VisibilityState, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/app/dashboard/components/sheets/AdminCreateSheet";
@@ -15,28 +15,26 @@ import { useState } from "react";
 import defaultImg from "../../../public/default-images/unit-default-image.png";
 import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
 import Image from "next/image";
-import { usePaginate } from "@/app/hooks/usePaginate";
 import { IPartyOut } from "@/app/types/party";
 
 export default function Page() {
   const [refreshNow, setRefreshNow] = useState(false);
-  // const [categories, setCategories] = React.useState<IPartyOut[]>([]);
-  const [categories, setCategories] = React.useState<any[]>([]);
 
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const { from, to } = usePaginate(currentPage, 10);
-
+  const [parties, setParties] = React.useState<IPartyOut[]>([]);
   React.useEffect(() => {
     const fetch = async () => {
       let { data, error } = await supabase.from("Party").select("*").select(`
       *,
       type (id, name)
       `);
-      setCategories(data || []);
+
+      if (error) {
+        throw new Error("Failed to fetch parties");
+      }
+      setParties(data || []);
     };
     fetch();
-  }, [currentPage, from, refreshNow, to]);
+  }, [refreshNow]);
 
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const deleteParty = async (id: number) => {
@@ -141,7 +139,7 @@ export default function Page() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
-              <Link href={`/categories/edit/${item.id}`}>
+              <Link href={`/parties/edit/${item.id}`}>
                 <DropdownMenuItem>Edit party</DropdownMenuItem>
               </Link>
 
@@ -172,7 +170,7 @@ export default function Page() {
   ];
 
   const table = useReactTable({
-    data: categories,
+    data: parties,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -195,7 +193,7 @@ export default function Page() {
       <DynamicBreadcrumb
         items={[
           { name: "Dashboard", link: "/dashboard" },
-          { name: "Categories", link: "/categories", isCurrentPage: true },
+          { name: "Parties", link: "/parties", isCurrentPage: true },
         ]}
       />
 
@@ -209,7 +207,7 @@ export default function Page() {
         />
 
         <div className=" space-x-2">
-          <Link href={"/categories/create"}>
+          <Link href={"/parties/create"}>
             <Button>Create Party</Button>
           </Link>
 
@@ -283,18 +281,15 @@ export default function Page() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(currentPage - 1)}
-            // onClick={handlePreviousPage}
-            // disabled={currentPage === 1}
-          >
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}>
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(currentPage + 1)}
-            // disabled={currentPage === totalPages}
-          >
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}>
             Next
           </Button>
         </div>
