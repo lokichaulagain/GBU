@@ -1,4 +1,5 @@
 "use client";
+import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -14,6 +15,7 @@ import { supabase } from "@/app/dashboard/components/sheets/AdminCreateSheet";
 import OptionalLabel from "@/components/custom/OptionalLabel";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
@@ -22,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ITypeOut } from "@/app/types/type";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -39,7 +42,17 @@ const formSchema = z.object({
   image: z.string(),
 });
 
-export default function Page1() {
+export default function Page() {
+  const [types, setTypes] = React.useState<ITypeOut[]>([]);
+  React.useEffect(() => {
+    const fetch = async () => {
+      let { data, error } = await supabase.from("Type").select("*");
+      setTypes(data || []);
+    };
+    fetch();
+  }, []);
+  console.log(types);
+
   const [imageUrl, setImageUrl] = useState<string>("");
 
   // Define your form
@@ -58,27 +71,35 @@ export default function Page1() {
     },
   });
 
+  console.log(form.getValues());
+
   // Define a submit handler
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsCreating(true);
-      const { data, error, status } = await supabase.from("Category").insert([values]).select();
+      // const dataToInsert = {
+      //   ...values,
+      //   type: parseFloat(values.type),
+      // };
+      // const { data, error, status } = await supabase.from("Party").insert([values]).select();
+      console.log(values)
+
+      const {  data, error, status} = await supabase.from("Party").insert([values]).select();
 
       if (error || status !== 201) {
-        throw new Error("Failed to create category");
+        throw new Error("Failed to create party");
       }
 
-      toast.success("Category created successfully");
+      toast.success("Party created successfully");
       form.reset();
       setImageUrl("");
     } catch (error) {
-      toast.error("Failed to create category");
+      toast.error("Failed to create party");
     } finally {
       setIsCreating(false);
     }
   };
-
   useEffect(() => {
     form.setValue("image", imageUrl);
   }, [form, imageUrl]);
@@ -103,10 +124,11 @@ export default function Page1() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                Name <OptionalLabel />
-              </FormLabel>
-              <Input {...field} />
+              <FormLabel>Party Name</FormLabel>
+              <Input
+                {...field}
+                placeholder="Loki Chaulagain"
+              />
               <FormMessage {...field} />
             </FormItem>
           )}
@@ -130,8 +152,27 @@ export default function Page1() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Type</FormLabel>
-              <Input {...field} />
-              <FormMessage {...field} />
+              <Select
+                {...field}
+                onValueChange={field.onChange}
+                defaultValue={field.name.toString()}
+                value={field.value.toString()}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {types.map((item) => (
+                    <SelectItem
+                      key={item.id}
+                      value={item.id.toString()}>
+                      {item.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -183,14 +224,20 @@ export default function Page1() {
           )}
         />
 
-        <FormField
+<FormField
           control={form.control}
           name="address"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Address</FormLabel>
-              <Input {...field} />
-              <FormMessage {...field} />
+              <FormLabel>Address </FormLabel>
+              <FormControl>
+                <Input
+                 
+                  placeholder="Address"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -258,7 +305,7 @@ export default function Page1() {
             type="submit"
             disabled={isCreating}>
             {isCreating && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
-            {isCreating ? " Please wait" : " Create Category"}
+            {isCreating ? " Please wait" : " Create Party"}
           </Button>
         </div>
       </form>

@@ -73,6 +73,11 @@ const navItems = [
       },
 
       {
+        title: "Parties",
+        href: "/parties",
+      },
+
+      {
         title: "Types",
         href: "/types",
       },

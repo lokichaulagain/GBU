@@ -20,12 +20,12 @@ import { usePaginate } from "@/app/hooks/usePaginate";
 
 export default function Page() {
   const [refreshNow, setRefreshNow] = useState(false);
-  const [types, setTypes] = React.useState<ITypeOut[]>([]);
-
+  
   const [currentPage, setCurrentPage] = useState(1);
-
+  
   const { from, to } = usePaginate(currentPage, 10);
-
+  
+  const [types, setTypes] = React.useState<ITypeOut[]>([]);
   React.useEffect(() => {
     const fetch = async () => {
       let { data, error } = await supabase.from("Type").select("*");
