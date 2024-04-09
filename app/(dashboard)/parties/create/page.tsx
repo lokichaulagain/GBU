@@ -15,13 +15,30 @@ import { supabase } from "@/app/dashboard/components/sheets/AdminCreateSheet";
 import OptionalLabel from "@/components/custom/OptionalLabel";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ITypeOut } from "@/app/types/type";
 
 const formSchema = z.object({
@@ -97,7 +114,10 @@ export default function Page() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsCreating(true);
-      const { data, error, status } = await supabase.from("Party").insert([values]).select();
+      const { data, error, status } = await supabase
+        .from("Party")
+        .insert([values])
+        .select();
 
       if (error || status !== 201) {
         throw new Error("Failed to create party");
@@ -131,17 +151,15 @@ export default function Page() {
 
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className=" grid grid-cols-2 gap-4">
+        className=" grid grid-cols-2 gap-4"
+      >
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Party Name</FormLabel>
-              <Input
-                {...field}
-                placeholder="Loki Chaulagain"
-              />
+              <Input {...field} placeholder="Loki Chaulagain" />
               <FormMessage {...field} />
             </FormItem>
           )}
@@ -153,10 +171,7 @@ export default function Page() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Phone</FormLabel>
-              <Input
-                {...field}
-                placeholder=" 9854765769"
-              />
+              <Input {...field} placeholder=" 9854765769" />
               <FormMessage {...field} />
             </FormItem>
           )}
@@ -173,7 +188,8 @@ export default function Page() {
                 {...field}
                 onValueChange={field.onChange}
                 defaultValue={field.name.toString()}
-                value={field.value.toString()}>
+                value={field.value.toString()}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a type" />
@@ -181,9 +197,7 @@ export default function Page() {
                 </FormControl>
                 <SelectContent>
                   {types.map((item) => (
-                    <SelectItem
-                      key={item.id}
-                      value={item.id.toString()}>
+                    <SelectItem key={item.id} value={item.id.toString()}>
                       {item.name}
                     </SelectItem>
                   ))}
@@ -217,20 +231,28 @@ export default function Page() {
                   <FormControl>
                     <Button
                       variant={"outline"}
-                      className={cn(" w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                      className={cn(
+                        " w-full pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        format(field.value, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
                       <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
-                <PopoverContent
-                  className="w-auto p-0"
-                  align="start">
+                <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-                    disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                    disabled={(date) =>
+                      date > new Date() || date < new Date("1900-01-01")
+                    }
                     initialFocus
                   />
                 </PopoverContent>
@@ -247,10 +269,7 @@ export default function Page() {
             <FormItem>
               <FormLabel>Address </FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Kathmandu, Nepal"
-                  {...field}
-                />
+                <Input placeholder="Kathmandu, Nepal" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -263,10 +282,7 @@ export default function Page() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Email</FormLabel>
-              <Input
-                {...field}
-                placeholder="Email Address"
-              />
+              <Input {...field} placeholder="Email Address" />
               <FormMessage {...field} />
             </FormItem>
           )}
@@ -278,10 +294,7 @@ export default function Page() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Pan Number</FormLabel>
-              <Input
-                {...field}
-                placeholder="Pan Number "
-              />
+              <Input {...field} placeholder="Pan Number " />
               <FormMessage {...field} />
             </FormItem>
           )}
@@ -293,12 +306,17 @@ export default function Page() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                Image <OptionalLabel /> <span className="text-primary/85  text-xs">[image must be less than 1MB]</span>
+                Image <OptionalLabel />{" "}
+                <span className="text-primary/85  text-xs">
+                  [image must be less than 1MB]
+                </span>
               </FormLabel>
               <div className=" flex items-center  gap-2">
                 <Input
                   type="file"
-                  onChange={(event) => handleFileUpload(event.target.files?.[0], setImageUrl)}
+                  onChange={(event) =>
+                    handleFileUpload(event.target.files?.[0], setImageUrl)
+                  }
                 />
 
                 <>
@@ -322,9 +340,7 @@ export default function Page() {
         />
 
         <div className=" mt-8 space-x-2">
-          <Button
-            type="submit"
-            disabled={isCreating}>
+          <Button type="submit" disabled={isCreating}>
             {isCreating && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
             {isCreating ? " Please wait" : " Create Party"}
           </Button>

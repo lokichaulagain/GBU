@@ -1,26 +1,65 @@
 "use client";
 import * as React from "react";
-import { CaretSortIcon, ChevronDownIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
-import { ColumnDef, ColumnFiltersState, SortingState, VisibilityState, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
+import {
+  CaretSortIcon,
+  ChevronDownIcon,
+  DotsHorizontalIcon,
+} from "@radix-ui/react-icons";
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { supabase } from "@/app/dashboard/components/sheets/AdminCreateSheet";
 import Link from "next/link";
 import { toast } from "sonner";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import defaultImg from "../../../public/default-images/unit-default-image.png";
 import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
 import Image from "next/image";
 import { IPartyOut } from "@/app/types/party";
+import { IInPaymentOut } from "@/app/types/payment";
 
 export default function Page() {
   const [refreshNow, setRefreshNow] = useState(false);
-
-  const [paymentsIn, setPaymentsIn] = React.useState<any[]>([]);
+  const [paymentsIn, setPaymentsIn] = React.useState<IInPaymentOut[]>([]);
   React.useEffect(() => {
     const fetch = async () => {
       let { data, error } = await supabase.from("Payment-in").select("*");
@@ -39,13 +78,18 @@ export default function Page() {
   const deletePaymentIn = async (id: number) => {
     try {
       setIsDeleting(true);
-      const { error, data, status } = await supabase.from("Payment-in").delete().eq("id", id);
+      const { error, data, status } = await supabase
+        .from("Payment-in")
+        .delete()
+        .eq("id", id);
 
       setRefreshNow(!refreshNow);
       if (error || status !== 204) {
         throw new Error("Failed to delete payment-in");
       }
-      toast.success(isDeleting ? "Payment-in deleting" : "Payment-in deleted successfully");
+      toast.success(
+        isDeleting ? "Payment-in deleting" : "Payment-in deleted successfully"
+      );
     } catch (error) {
       toast.error("Failed to delete payment-in");
     } finally {
@@ -54,8 +98,11 @@ export default function Page() {
   };
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
   const columns: ColumnDef<IPartyOut>[] = [
@@ -63,7 +110,10 @@ export default function Page() {
       id: "select",
       header: ({ table }) => (
         <Checkbox
-          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
         />
@@ -82,22 +132,30 @@ export default function Page() {
     {
       accessorKey: "receiptNumber",
       header: "receiptNumber",
-      cell: ({ row }) => <div className="capitalize">{row.getValue("receiptNumber")}</div>,
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("receiptNumber")}</div>
+      ),
     },
     {
       accessorKey: "party",
       header: "party",
-      cell: ({ row }) => <div className="capitalize">{row.getValue("party")}</div>,
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("party")}</div>
+      ),
     },
     {
       accessorKey: "paymentMethod",
       header: "paymentMethod",
-      cell: ({ row }) => <div className="capitalize">{row.getValue("paymentMethod")}</div>,
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("paymentMethod")}</div>
+      ),
     },
     {
       accessorKey: "receivedAmount",
       header: "receivedAmount",
-      cell: ({ row }) => <div className="capitalize">{row.getValue("receivedAmount")}</div>,
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("receivedAmount")}</div>
+      ),
     },
 
     {
@@ -129,9 +187,7 @@ export default function Page() {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="h-8 w-8 p-0">
+              <Button variant="ghost" className="h-8 w-8 p-0">
                 <span className="sr-only">Open menu</span>
                 <DotsHorizontalIcon className="h-4 w-4" />
               </Button>
@@ -145,18 +201,27 @@ export default function Page() {
 
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <span className=" flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"> Delete payment-in</span>
+                  <span className=" flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
+                    {" "}
+                    Delete payment-in
+                  </span>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>This action cannot be undone. This will permanently delete your account and remove your data from our servers.</AlertDialogDescription>
+                    <AlertDialogTitle>
+                      Are you absolutely sure?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete
+                      your account and remove your data from our servers.
+                    </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       className=" bg-red-500/90"
-                      onClick={() => deletePaymentIn(item.id)}>
+                      onClick={() => deletePaymentIn(item.id)}
+                    >
                       Continue
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -169,24 +234,25 @@ export default function Page() {
     },
   ];
 
-  const table = useReactTable({
-    data: paymentsIn,
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
-  });
+  // error : conflict in data types 
+    const table = useReactTable({
+      data: paymentsIn,
+      columns,
+      onSortingChange: setSorting,
+      onColumnFiltersChange: setColumnFilters,
+      getCoreRowModel: getCoreRowModel(),
+      getPaginationRowModel: getPaginationRowModel(),
+      getSortedRowModel: getSortedRowModel(),
+      getFilteredRowModel: getFilteredRowModel(),
+      onColumnVisibilityChange: setColumnVisibility,
+      onRowSelectionChange: setRowSelection,
+      state: {
+        sorting,
+        columnFilters,
+        columnVisibility,
+        rowSelection,
+      },
+    });
 
   return (
     <div className="w-full">
@@ -202,20 +268,20 @@ export default function Page() {
         <Input
           placeholder="Search by name..."
           value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-          onChange={(event) => table.getColumn("email")?.setFilterValue(event.target.value)}
+          onChange={(event) =>
+            table.getColumn("email")?.setFilterValue(event.target.value)
+          }
           className="max-w-sm"
         />
 
         <div className=" space-x-2">
-          <Link href={"/parties/create"}>
+          <Link href={"/payment-in/create"}>
             <Button>Create payment-in</Button>
           </Link>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="ml-auto">
+              <Button variant="outline" className="ml-auto">
                 Columns <ChevronDownIcon className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -229,7 +295,10 @@ export default function Page() {
                       key={column.id}
                       className="capitalize"
                       checked={column.getIsVisible()}
-                      onCheckedChange={(value) => column.toggleVisibility(!!value)}>
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
                       {column.id}
                     </DropdownMenuCheckboxItem>
                   );
@@ -244,7 +313,16 @@ export default function Page() {
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  return <TableHead key={header.id}>{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</TableHead>;
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  );
                 })}
               </TableRow>
             ))}
@@ -254,9 +332,15 @@ export default function Page() {
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}>
+                  data-state={row.getIsSelected() && "selected"}
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
                   ))}
                 </TableRow>
               ))
@@ -264,7 +348,8 @@ export default function Page() {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center">
+                  className="h-24 text-center"
+                >
                   No results.
                 </TableCell>
               </TableRow>
@@ -274,7 +359,8 @@ export default function Page() {
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s) selected.
+          {table.getFilteredSelectedRowModel().rows.length} of{" "}
+          {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
 
         <div className="space-x-2">
@@ -282,14 +368,16 @@ export default function Page() {
             variant="outline"
             size="sm"
             onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}>
+            disabled={!table.getCanPreviousPage()}
+          >
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}>
+            disabled={!table.getCanNextPage()}
+          >
             Next
           </Button>
         </div>
