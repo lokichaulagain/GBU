@@ -190,12 +190,12 @@ export default function Page() {
 
   return (
     <div className="w-full">
-      <DynamicBreadcrumb
+      {/* <DynamicBreadcrumb
         items={[
           { name: "Dashboard", link: "/dashboard" },
           { name: "Parties", link: "/parties", isCurrentPage: true },
         ]}
-      />
+      /> */}
 
       {isDeleting && toast.success("Deleting ...")}
       <div className="flex items-center justify-between py-4">

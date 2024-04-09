@@ -193,7 +193,7 @@ export default function Page() {
         ]}
       />
 
-      {isDeleting && toast.success("Deleting ...")}
+      {/* {isDeleting && toast.success("Deleting ...")} */}
       <div className="flex items-center justify-between py-4">
         <Input
           placeholder="Search by name..."

@@ -176,14 +176,14 @@ export default function Page() {
 
   return (
     <div className="w-full">
-      <DynamicBreadcrumb
+      {/* <DynamicBreadcrumb
         items={[
           { name: "Dashboard", link: "/dashboard" },
           { name: "Units", link: "/units", isCurrentPage: true },
         ]}
-      />
+      /> */}
 
-      {isDeleting && toast.success("Deleting ...")}
+      {/* {isDeleting && toast.success("Deleting ...")} */}
       <div className="flex items-center justify-between py-4">
         <Input
           placeholder="Search by name..."
