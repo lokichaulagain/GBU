@@ -1,4 +1,5 @@
 "use client";
+import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -11,45 +12,49 @@ import { supabase } from "@/app/dashboard/components/sheets/AdminCreateSheet";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import { useParams } from "next/navigation";
 import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
-import { IPartyOut } from "@/app/types/party";
+import { IPartyIn } from "@/app/types/party";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 import ButtonActionLoader from "@/components/custom/ButtonActionLoader";
 import OptionalLabel from "@/components/custom/OptionalLabel";
-
-
-
-import OptionalLabel from "@/components/custom/OptionalLabel";
-import { ReloadIcon } from "@radix-ui/react-icons";
-import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
-import { Form, FormControl } from "@/components/ui/form";
+import { FormControl } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ITypeOut } from "@/app/types/type";
+import useCloudinaryFileUpload from "@/app/hooks/useCloudinaryFileUpload";
+import defaultImage from "../../../../../public/default-images/unit-default-image.png";
 
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "Name must be at least 2 characters.",
   }),
 
-  phone: z.string().length(10, {
-    message: "Phone must be exactly 10 characters.",
+  phone: z.coerce.number({
+    required_error: "Phone is required",
+    invalid_type_error: "Phone must be a number",
   }),
 
-  type: z.coerce.number(),
+  type: z.coerce.number({
+    required_error: "Select the type of party",
+    invalid_type_error: "Type must be a number",
+  }),
 
-  openingBalance: z.coerce.number(),
-  openingBalanceDate: z.coerce.date(),
-  address: z.string(),
+  openingBalance: z.coerce.number().default(0),
+  openingBalanceDate: z.coerce.date().default(new Date()),
+
+  address: z.string().min(10, {
+    message: "Address must be at least 10 characters.",
+  }),
 
   email: z.string().min(10, {
-    message: "Name must be at least 10 characters.",
+    message: " Email must be at least 10 characters.",
   }),
 
-  panNumber: z.string().min(10, {
-    message: "Pan Number must be at least 10 characters.",
+  panNumber: z.string().length(10, {
+    message: " Pan Number must be exactly 10 characters.",
   }),
 
   image: z.string().optional(),
@@ -59,8 +64,20 @@ export default function Page() {
   const params = useParams() as { id: string };
   const id = parseFloat(params.id);
 
+  const [imageUrl, setImageUrl] = useState<string>("");
+
+  const [types, setTypes] = React.useState<ITypeOut[]>([]);
+  React.useEffect(() => {
+    const fetch = async () => {
+      let { data, error } = await supabase.from("Type").select("*");
+      setTypes(data || []);
+    };
+    fetch();
+  }, []);
+  console.log(types);
+
   const [isFetching, setIsFetching] = useState<boolean>(false);
-  const [party, setParty] = useState<IPartyOut>();
+  const [party, setParty] = useState<IPartyIn>();
 
   const [refetch, setRefetch] = useState<boolean>(false);
   useEffect(() => {
@@ -88,7 +105,7 @@ export default function Page() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      phone: "",
+      phone: 0,
       type: 0,
       openingBalance: 0,
       openingBalanceDate: new Date(),
@@ -103,7 +120,7 @@ export default function Page() {
     if (party) {
       form.reset({
         name: party.name || "",
-        phone: party.phone || "",
+        phone: party.phone || 0,
         type: party.type || 0,
         openingBalance: party.openingBalance || 0,
         openingBalanceDate: party.openingBalanceDate || new Date(),
@@ -112,8 +129,13 @@ export default function Page() {
         panNumber: party.panNumber || "",
         image: party.image || "",
       });
+
+      const selectedType: ITypeOut | undefined = types.find((item) => item.id === party.type);
+      if (selectedType) {
+        form.setValue("type", selectedType.id);
+      }
     }
-  }, [form, party]);
+  }, [form, party, types]);
 
   // Define a submit handler
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
@@ -136,6 +158,14 @@ export default function Page() {
     }
   };
 
+  useEffect(() => {
+    form.setValue("image", imageUrl);
+  }, [form, imageUrl]);
+
+  const { uploading, handleFileUpload } = useCloudinaryFileUpload();
+
+  console.log(party);
+
   return (
     <Form {...form}>
       <DynamicBreadcrumb
@@ -146,7 +176,7 @@ export default function Page() {
         ]}
       />
 
-<form
+      <form
         onSubmit={form.handleSubmit(onSubmit)}
         className=" grid grid-cols-2 gap-4">
         <FormField
@@ -233,7 +263,7 @@ export default function Page() {
                   <FormControl>
                     <Button
                       variant={"outline"}
-                      className={cn(" w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                      className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
                       {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
                       <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                     </Button>
@@ -334,9 +364,9 @@ export default function Page() {
         <div className=" mt-8 space-x-2">
           <Button
             type="submit"
-            disabled={isCreating}>
-            {isCreating && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
-            {isCreating ? " Please wait" : " Create Party"}
+            disabled={isUpdating}>
+            {isUpdating && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
+            {isUpdating ? " Please wait" : " Update Party"}
           </Button>
         </div>
       </form>
