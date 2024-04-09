@@ -29,22 +29,29 @@ const formSchema = z.object({
     message: "Name must be at least 2 characters.",
   }),
 
-  phone: z.string().length(10, {
-    message: "Phone must be exactly 10 characters.",
+  phone: z.coerce.number({
+    required_error: "Phone is required",
+    invalid_type_error: "Phone must be a number",
   }),
 
-  type: z.coerce.number(),
+  type: z.coerce.number({
+    required_error: "Select the type of party",
+    invalid_type_error: "Type must be a number",
+  }),
 
-  openingBalance: z.coerce.number(),
-  openingBalanceDate: z.coerce.date(),
-  address: z.string(),
+  openingBalance: z.coerce.number().default(0),
+  openingBalanceDate: z.coerce.date().default(new Date()),
+
+  address: z.string().min(10, {
+    message: "Address must be at least 10 characters.",
+  }),
 
   email: z.string().min(10, {
-    message: "Name must be at least 10 characters.",
+    message: " Email must be at least 10 characters.",
   }),
 
-  panNumber: z.string().min(10, {
-    message: "Pan Number must be at least 10 characters.",
+  panNumber: z.string().length(10, {
+    message: " Pan Number must be exactly 10 characters.",
   }),
 
   image: z.string().optional(),
@@ -55,6 +62,10 @@ export default function Page() {
   React.useEffect(() => {
     const fetch = async () => {
       let { data, error } = await supabase.from("Type").select("*");
+      if (error || !data) {
+        throw new Error("Failed to fetch types");
+      }
+
       setTypes(data || []);
     };
     fetch();
@@ -68,7 +79,7 @@ export default function Page() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      phone: "",
+      phone: 0,
       type: 0,
       openingBalance: 0,
       openingBalanceDate: new Date(),
@@ -157,6 +168,7 @@ export default function Page() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Type</FormLabel>
+
               <Select
                 {...field}
                 onValueChange={field.onChange}
@@ -198,8 +210,8 @@ export default function Page() {
           control={form.control}
           name="openingBalanceDate"
           render={({ field }) => (
-            <FormItem className="flex flex-col hap-4">
-              <FormLabel>Date of birth</FormLabel>
+            <FormItem className="flex flex-col gap-3">
+              <FormLabel>Opening Balance Date</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
@@ -236,7 +248,7 @@ export default function Page() {
               <FormLabel>Address </FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Address"
+                  placeholder="Kathmandu, Nepal"
                   {...field}
                 />
               </FormControl>
@@ -251,7 +263,10 @@ export default function Page() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Email</FormLabel>
-              <Input {...field} />
+              <Input
+                {...field}
+                placeholder="Email Address"
+              />
               <FormMessage {...field} />
             </FormItem>
           )}
@@ -263,7 +278,10 @@ export default function Page() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Pan Number</FormLabel>
-              <Input {...field} />
+              <Input
+                {...field}
+                placeholder="Pan Number "
+              />
               <FormMessage {...field} />
             </FormItem>
           )}
