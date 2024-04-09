@@ -113,6 +113,24 @@ const navItems = [
   },
 
   {
+    name: "Payment In/Out ",
+    icon: <User2 size={15} />,
+    href: "",
+
+    subLinks: [
+      {
+        title: "Payment In",
+        href: "/payment-in",
+      },
+
+      {
+        title: "Payment Out",
+        href: "/payment-out",
+      },
+    ],
+  },
+
+  {
     name: "Settings",
     icon: <Settings size={15} />,
     href: "/",
