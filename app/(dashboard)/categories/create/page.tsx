@@ -13,7 +13,7 @@ import defaultImage from "../../../../public/default-images/unit-default-image.p
 import ButtonActionLoader from "@/components/custom/ButtonActionLoader";
 import OptionalLabel from "@/components/custom/OptionalLabel";
 import { ReloadIcon } from "@radix-ui/react-icons";
-import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
+import DynamicBreadcrumb from "@/components/custom/DynamicBreadcrumb";
 import { supabase } from "@/utils/supabase/supabaseClient";
 
 const formSchema = z.object({

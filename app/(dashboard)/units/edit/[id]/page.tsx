@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import { useParams } from "next/navigation";
-import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
+import DynamicBreadcrumb from "@/components/custom/DynamicBreadcrumb";
 import { IUnitOut } from "@/app/types/unit";
 import { supabase } from "@/utils/supabase/supabaseClient";
 
