@@ -148,6 +148,25 @@ const navItems = [
     ],
   },
 
+
+  {
+    name: "Incomes & Expenses ",
+    icon: <User2 size={15} />,
+    href: "",
+
+    subLinks: [
+      {
+        title: "Incomes",
+        href: "/incomes",
+      },
+
+      {
+        title: "Expenses",
+        href: "/expenses",
+      },
+    ],
+  },
+
   {
     name: "Settings",
     icon: <Settings size={15} />,
