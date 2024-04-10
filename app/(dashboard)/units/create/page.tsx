@@ -8,9 +8,9 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
 import useCloudinaryFileUpload from "@/app/hooks/useCloudinaryFileUpload";
-import { supabase } from "@/app/dashboard/components/sheets/AdminCreateSheet";
 import { ReloadIcon } from "@radix-ui/react-icons";
-import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
+import DynamicBreadcrumb from "@/components/custom/DynamicBreadcrumb";
+import { supabase } from "@/utils/supabase/supabaseClient";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -52,13 +52,13 @@ export default function Page() {
 
   return (
     <Form {...form}>
-      <DynamicBreadcrumb
+      {/* <DynamicBreadcrumb
         items={[
           { name: "Dashboard", link: "/dashboard" },
           { name: "Units", link: "/units" },
           { name: "Create", link: "/units/create", isCurrentPage: true },
         ]}
-      />
+      /> */}
 
       <form
         onSubmit={form.handleSubmit(onSubmit)}

@@ -40,7 +40,7 @@ const formSchema = z.object({
     required_error: "Select the payment method.",
   }),
 
-  receivedAmount: z.coerce.number({
+  paidAmount: z.coerce.number({
     required_error: "Amount is required",
     invalid_type_error: "Amount must be a number",
   }),
@@ -74,7 +74,7 @@ export default function Page() {
       paymentDate: new Date(),
       party: "",
       paymentMethod: "Cash",
-      receivedAmount: 0,
+      paidAmount: 0,
       note: "",
       image: "",
     },
@@ -87,17 +87,17 @@ export default function Page() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsCreating(true);
-      const { data, error, status } = await supabase.from("Payment-in").insert([values]).select();
+      const { data, error, status } = await supabase.from("Payment-out").insert([values]).select();
 
       if (error || status !== 201) {
-        throw new Error("Failed to create payment-in");
+        throw new Error("Failed to create payment-out");
       }
 
-      toast.success("Payment-in created successfully");
+      toast.success("Payment-out created successfully");
       form.reset();
       setImageUrl("");
     } catch (error) {
-      toast.error("Failed to create payment-in");
+      toast.error("Failed to create payment-out");
     } finally {
       setIsCreating(false);
     }
@@ -205,7 +205,7 @@ export default function Page() {
 
         <FormField
           control={form.control}
-          name="receivedAmount"
+          name="paidAmount"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Received Amount </FormLabel>

@@ -12,11 +12,12 @@ import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import DynamicBreadcrumb from "@/components/custom/DynamicBreadcrumb";
-import { IUnitOut } from "@/app/types/unit";
-import moment from "moment";
+import Image from "next/image";
+import { IPaymentoutOut } from "@/app/types/payment";
 import { supabase } from "@/utils/supabase/supabaseClient";
 
-const columns: ColumnDef<IUnitOut>[] = [
+
+const columns: ColumnDef<IPaymentoutOut>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -38,32 +39,44 @@ const columns: ColumnDef<IUnitOut>[] = [
   },
 
   {
-    accessorKey: "name",
-    header: ({ column }) => {
+    accessorKey: "receiptNumber",
+    header: "receiptNumber",
+    cell: ({ row }) => <div className="capitalize">{row.getValue("receiptNumber")}</div>,
+  },
+  {
+    accessorKey: "party",
+    header: "party",
+    cell: ({ row }) => <div className="capitalize">{row.getValue("party")}</div>,
+  },
+  {
+    accessorKey: "paymentMethod",
+    header: "paymentMethod",
+    cell: ({ row }) => <div className="capitalize">{row.getValue("paymentMethod")}</div>,
+  },
+  {
+    accessorKey: "paidAmount",
+    header: "paidAmount",
+    cell: ({ row }) => <div className="capitalize">{row.getValue("paidAmount")}</div>,
+  },
+
+  {
+    accessorKey: "image",
+    header: "Image",
+    cell: ({ row }) => {
+      const image: string = row.getValue("image") as string;
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-          Name
-          <CaretSortIcon className="ml-2 h-4 w-4" />
-        </Button>
+        <div className="">
+          <Image
+            src={image }
+            alt="Branch Image"
+            width={30}
+            height={30}
+            className=" border p-1 rounded-md"
+          />
+        </div>
       );
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
   },
-
-  {
-    accessorKey: "shortForm",
-    header: "Short Form",
-    cell: ({ row }) => <div className="capitalize">{row.getValue("shortForm")}</div>,
-  },
-
-  {
-    accessorKey: "created_at",
-    header: "Created Date",
-    cell: ({ row }) => <div className="capitalize">{moment(row.getValue("created_at")).format("MMM Do YY")}</div>,
-  },
-
   {
     id: "actions",
     enableHiding: false,
@@ -85,13 +98,13 @@ const columns: ColumnDef<IUnitOut>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
-            <Link href={`/units/edit/${item.id}`}>
-              <DropdownMenuItem>Edit unit</DropdownMenuItem>
+            <Link href={`/paymentsIn/edit/${item.id}`}>
+              <DropdownMenuItem>Edit payment-in</DropdownMenuItem>
             </Link>
 
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <span className=" flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"> Delete unit</span>
+                <span className=" flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"> Delete payment-in</span>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
@@ -102,7 +115,7 @@ const columns: ColumnDef<IUnitOut>[] = [
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
                     className=" bg-red-500/90"
-                    // onClick={() => deleteUnit(item.id)}
+                    // onClick={() => deletePaymentOut(item.id)}
                     >
                     Continue
                   </AlertDialogAction>
@@ -121,44 +134,47 @@ export default function Page() {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-
+  
   const [refreshNow, setRefreshNow] = useState(false);
-  const [units, setUnits] = React.useState<IUnitOut[]>([]);
 
+  const [paymentsOut, setPaymentsOut] = React.useState<IPaymentoutOut[]>([]);
   React.useEffect(() => {
     const fetch = async () => {
-      let { data, error } = await supabase.from("Unit").select("*");
-      if (error) {
-        throw new Error("Failed to fetch units");
-      }
+      let { data, error } = await supabase.from("Payment-out").select("*");
 
-      setUnits(data || []);
+      if (error) {
+        throw new Error("Failed to fetch parties");
+      }
+      setPaymentsOut(data || []);
     };
     fetch();
   }, [refreshNow]);
 
+  console.log(paymentsOut);
+
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const deleteUnit = async (id: number) => {
+  const deletePaymentOut = async (id: number) => {
     try {
       setIsDeleting(true);
-      const { error, data, status } = await supabase.from("Unit").delete().eq("id", id);
-
-      if (error || status !== 204) {
-        throw new Error("Failed to delete unit");
-      }
+      const { error, data, status } = await supabase.from("Payment-in").delete().eq("id", id);
 
       setRefreshNow(!refreshNow);
-      toast.success(isDeleting ? "Unit deleting" : "Unit deleted successfully");
+      if (error || status !== 204) {
+        throw new Error("Failed to delete payment-in");
+      }
+      toast.success(isDeleting ? "Payment-in deleting" : "Payment-in deleted successfully");
     } catch (error) {
-      toast.error("Failed to delete unit");
+      toast.error("Failed to delete payment-in");
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const data: IUnitOut[] = units;
+
+
+  const data: IPaymentoutOut[] = paymentsOut;
   const table = useReactTable({
-    data: data,
+    data: paymentsOut && paymentsOut || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -188,8 +204,8 @@ export default function Page() {
         />
 
         <div className=" space-x-2">
-          <Link href={"/units/create"}>
-            <Button>Create Unit</Button>
+          <Link href={"/payment-out/create"}>
+            <Button>Create payment-in</Button>
           </Link>
 
           <DropdownMenu>

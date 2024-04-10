@@ -9,12 +9,10 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import useCloudinaryFileUpload from "@/app/hooks/useCloudinaryFileUpload";
 import Image from "next/image";
-import defaultImage from "../../../../public/default-images/unit-default-image.png";
 import ButtonActionLoader from "@/components/custom/ButtonActionLoader";
-import { supabase } from "@/app/dashboard/components/sheets/AdminCreateSheet";
 import OptionalLabel from "@/components/custom/OptionalLabel";
 import { ReloadIcon } from "@radix-ui/react-icons";
-import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
+import DynamicBreadcrumb from "@/components/custom/DynamicBreadcrumb";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
@@ -23,6 +21,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ITypeOut } from "@/app/types/type";
+import { supabase } from "@/utils/supabase/supabaseClient";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -34,9 +33,9 @@ const formSchema = z.object({
     invalid_type_error: "Phone must be a number",
   }),
 
-  type: z.coerce.number({
+  type: z.string({
     required_error: "Select the type of party",
-    invalid_type_error: "Type must be a number",
+    invalid_type_error: "Type must be a string",
   }),
 
   openingBalance: z.coerce.number().default(0),
@@ -58,6 +57,22 @@ const formSchema = z.object({
 });
 
 export default function Page() {
+  // Define your form
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      phone: 0,
+      type: "",
+      openingBalance: 0,
+      openingBalanceDate: new Date(),
+      address: "",
+      email: "",
+      panNumber: "",
+      image: "",
+    },
+  });
+
   const [types, setTypes] = React.useState<ITypeOut[]>([]);
   React.useEffect(() => {
     const fetch = async () => {
@@ -73,22 +88,6 @@ export default function Page() {
   console.log(types);
 
   const [imageUrl, setImageUrl] = useState<string>("");
-
-  // Define your form
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      phone: 0,
-      type: 0,
-      openingBalance: 0,
-      openingBalanceDate: new Date(),
-      address: "",
-      email: "",
-      panNumber: "",
-      image: "",
-    },
-  });
 
   // console.log(form.getValues());
 
@@ -121,14 +120,6 @@ export default function Page() {
 
   return (
     <Form {...form}>
-      <DynamicBreadcrumb
-        items={[
-          { name: "Dashboard", link: "/dashboard" },
-          { name: "Categories", link: "/categories" },
-          { name: "Create", link: "/categories/create", isCurrentPage: true },
-        ]}
-      />
-
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className=" grid grid-cols-2 gap-4">
@@ -172,8 +163,8 @@ export default function Page() {
               <Select
                 {...field}
                 onValueChange={field.onChange}
-                defaultValue={field.name.toString()}
-                value={field.value.toString()}>
+                defaultValue={field.name}
+                value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a type" />
@@ -310,7 +301,7 @@ export default function Page() {
                     <Image
                       width={100}
                       height={100}
-                      src={imageUrl || defaultImage}
+                      src={imageUrl}
                       alt="img"
                       className="p-0.5 rounded-md overflow-hidden h-9 w-9 border"
                     />

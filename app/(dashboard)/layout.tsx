@@ -1,11 +1,11 @@
 "use client";
-import {  Menu, Settings, User2 } from "lucide-react";
+import { Menu, Settings, User2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import CollapsibleTab from "../dashboard/components/CollapsibleTab";
-import AdminNotification from "../dashboard/components/AdminNotification";
-import AdminCircleUser from "../dashboard/components/AdminCircleUser";
-import ThemeToggleButton from "../dashboard/ThemeToggleButton";
+import CollapsibleTab from "../../components/custom/CollapsibleTab";
+import AdminNotification from "../../components/custom/AdminNotification";
+import AdminCircleUser from "../../components/custom/AdminCircleUser";
+import ThemeToggleButton from "@/components/custom/ThemeToggleButton";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -126,6 +126,24 @@ const navItems = [
       {
         title: "Payment Out",
         href: "/payment-out",
+      },
+    ],
+  },
+
+  {
+    name: "Cash & Banks ",
+    icon: <User2 size={15} />,
+    href: "",
+
+    subLinks: [
+      {
+        title: "Cash In Hand",
+        href: "/cash-in-hand",
+      },
+
+      {
+        title: "Bank Balance",
+        href: "/bank-balance",
       },
     ],
   },
