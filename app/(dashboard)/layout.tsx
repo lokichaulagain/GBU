@@ -1,5 +1,5 @@
 "use client";
-import {  Menu, Settings, User2 } from "lucide-react";
+import { Menu, Settings, User2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import CollapsibleTab from "../dashboard/components/CollapsibleTab";
@@ -126,6 +126,24 @@ const navItems = [
       {
         title: "Payment Out",
         href: "/payment-out",
+      },
+    ],
+  },
+
+  {
+    name: "Cash & Banks ",
+    icon: <User2 size={15} />,
+    href: "",
+
+    subLinks: [
+      {
+        title: "Cash In Hand",
+        href: "/cash-in-hand",
+      },
+
+      {
+        title: "Bank Balance",
+        href: "/bank-balance",
       },
     ],
   },

@@ -1,26 +1,24 @@
 "use client";
 import * as React from "react";
-import { CaretSortIcon, ChevronDownIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { ColumnDef, ColumnFiltersState, SortingState, VisibilityState, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
+import { ArrowDown01, ArrowDown10, ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { supabase } from "@/app/dashboard/components/sheets/AdminCreateSheet";
 import Link from "next/link";
-import { toast } from "sonner";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useState } from "react";
-import defaultImg from "../../../public/default-images/unit-default-image.png";
-import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
-import Image from "next/image";
-import { ITypeOut } from "@/app/types/type";
+import { Checkbox } from "@/components/ui/checkbox";
+import * as Dialog from "@radix-ui/react-dialog";
 
 export default function Page() {
-  const [refreshNow, setRefreshNow] = useState(false);
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
 
+  const [refreshNow, setRefreshNow] = React.useState(false);
   const [types, setTypes] = React.useState<ITypeOut[]>([]);
+  
   React.useEffect(() => {
     const fetch = async () => {
       let { data, error } = await supabase.from("Type").select("*");
@@ -32,30 +30,7 @@ export default function Page() {
     fetch();
   }, [refreshNow]);
 
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const deleteType = async (id: number) => {
-    try {
-      setIsDeleting(true);
-      const { error, data, status } = await supabase.from("Type").delete().eq("id", id);
-      setRefreshNow(!refreshNow);
-
-      if (error || status !== 204) {
-        throw new Error("Failed to delete type");
-      }
-      toast.success(isDeleting ? "Type deleting" : "Type deleted successfully");
-    } catch (error) {
-      toast.error("Failed to delete type");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
-
-  const columns: ColumnDef<ITypeOut>[] = [
+  const columns: ColumnDef<any>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -83,81 +58,87 @@ export default function Page() {
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Name
-            <CaretSortIcon className="ml-2 h-4 w-4" />
+            Member Name
+            <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
-      cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
+      cell: ({ row }: any) => <div>{row.getValue("name")}</div>,
     },
 
     {
-      accessorKey: "desc",
-      header: "Description",
-      cell: ({ row }) => <div className="capitalize">{row.getValue("desc")}</div>,
+      accessorKey: "phone",
+      header: "Phone",
+      cell: ({ row }: any) => <div>{row.getValue("phone")}</div>,
     },
-    {
-      accessorKey: "image",
-      header: "Image",
-      cell: ({ row }) => {
-        const image: string = row.getValue("image") as string;
-        return (
-          <div className="">
-            <Image
-              src={image || defaultImg}
-              alt="Branch Image"
-              width={30}
-              height={30}
-              className=" border p-1 rounded-md"
-            />
-          </div>
-        );
-      },
-    },
+
     {
       id: "actions",
-      enableHiding: false,
       header: "Action",
+      enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
-        console.log(item.id);
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <DotsHorizontalIcon className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger asChild></DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
-              <Link href={`/types/edit/${item.id}`}>
-                <DropdownMenuItem>Edit type</DropdownMenuItem>
-              </Link>
+              <DropdownMenuSeparator />
 
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <span className=" flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"> Delete type</span>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>This action cannot be undone. This will permanently delete your account and remove your data from our servers.</AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      className=" bg-red-500/90"
-                      onClick={() => deleteType(item.id)}>
-                      Continue
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <Link href={`/admin/members/edit/${item.memberId}`}>
+                <DropdownMenuItem>View/Edit</DropdownMenuItem>
+              </Link>
+              {/* <DropdownMenuItem
+                onClick={() => handleDelete(item.memberId)}
+                className=" text-destructive">
+                Delete
+              </DropdownMenuItem> */}
+
+              <Dialog.Root>
+                <Dialog.Trigger className=" text-sm text-start py-1 px-2.5 hover:bg-primary-foreground w-full">Delete</Dialog.Trigger>
+                <Dialog.Portal>
+                  <Dialog.Overlay className="fixed inset-0 w-full h-full bg-black opacity-40" />
+                  <Dialog.Content className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] px-4 w-full max-w-lg">
+                    <div className="bg-white rounded-md shadow-lg px-4 py-6 sm:flex">
+                      <div className="flex items-center justify-center flex-none w-12 h-12 mx-auto bg-red-100 rounded-full">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="w-5 h-5 text-red-600"
+                          viewBox="0 0 20 20"
+                          fill="currentColor">
+                          <path
+                            fillRule="evenodd"
+                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <div className="mt-2 text-center sm:ml-4 sm:text-left">
+                        <Dialog.Title className="text-lg font-medium text-gray-800">Are you sure ?</Dialog.Title>
+                        <Dialog.Description className="mt-2 text-sm leading-relaxed text-gray-500">The data that has been deleted once cannot be recovered , so please carefully delete the data .</Dialog.Description>
+                        <div className="items-center gap-2 mt-3 text-sm sm:flex">
+                          <Dialog.Close asChild>
+                            <button
+                              // onClick={() => handleDelete(item.memberId)}
+                              className="w-full mt-2 p-2.5 flex-1 text-white bg-red-600 rounded-md ring-offset-2 ring-red-600 focus:ring-2">
+                              Delete
+                            </button>
+                          </Dialog.Close>
+                          <Dialog.Close asChild>
+                            <button
+                              aria-label="Close"
+                              className="w-full mt-2 p-2.5 flex-1 text-gray-800 rounded-md border ring-offset-2 ring-indigo-600 focus:ring-2">
+                              Cancel
+                            </button>
+                          </Dialog.Close>
+                        </div>
+                      </div>
+                    </div>
+                  </Dialog.Content>
+                </Dialog.Portal>
+              </Dialog.Root>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -166,7 +147,7 @@ export default function Page() {
   ];
 
   const table = useReactTable({
-    data: types,
+    data: types || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -186,33 +167,23 @@ export default function Page() {
 
   return (
     <div className="w-full">
-      <DynamicBreadcrumb
-        items={[
-          { name: "Dashboard", link: "/dashboard" },
-          { name: "Types", link: "/types", isCurrentPage: true },
-        ]}
-      />
-
-      {/* {isDeleting && toast.success("Deleting ...")} */}
-      <div className="flex items-center justify-between py-4">
+      <Breadcumb />
+      <div className="flex justify-between items-center py-4">
         <Input
-          placeholder="Search by name..."
-          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-          onChange={(event) => table.getColumn("email")?.setFilterValue(event.target.value)}
+          placeholder="Filter by name ..."
           className="max-w-sm"
         />
 
-        <div className=" space-x-2">
-          <Link href={"/types/create"}>
-            <Button>Create Type</Button>
+        <div className="flex space-x-2">
+          <Link href={"/admin/members/create"}>
+            <Button>Add New Member</Button>
           </Link>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
                 className="ml-auto">
-                Columns <ChevronDownIcon className="ml-2 h-4 w-4" />
+                Columns <ChevronDown className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -225,7 +196,7 @@ export default function Page() {
                       key={column.id}
                       className="capitalize"
                       checked={column.getIsVisible()}
-                      onCheckedChange={(value) => column.toggleVisibility(!!value)}>
+                      onCheckedChange={(value: any) => column.toggleVisibility(!!value)}>
                       {column.id}
                     </DropdownMenuCheckboxItem>
                   );
@@ -269,24 +240,18 @@ export default function Page() {
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
+        <div className="flex-1 text-sm text-muted-foreground">{/* {startIndex} of {totalItem} row(s) selected. */}</div>
 
         <div className="space-x-2">
-        <Button
+          <Button
             variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
+            size="sm">
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            // disabled={startIndex + itemsPerPage >= totalItem}
           >
             Next
           </Button>
@@ -295,3 +260,30 @@ export default function Page() {
     </div>
   );
 }
+
+// Breadcumb
+import { SlashIcon } from "@radix-ui/react-icons";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { Badge } from "@/components/ui/badge";
+import { ITypeOut } from "@/app/types/type";
+import { supabase } from "@/utils/supabase/supabaseClient";
+
+function Breadcumb() {
+  return (
+    <Breadcrumb className=" mb-8">
+      <BreadcrumbList>
+        <BreadcrumbItem>
+          <BreadcrumbLink href="/admin">Dashboard</BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator>
+          <SlashIcon />
+        </BreadcrumbSeparator>
+
+        <BreadcrumbItem>
+          <BreadcrumbPage>Members</BreadcrumbPage>
+        </BreadcrumbItem>
+      </BreadcrumbList>
+    </Breadcrumb>
+  );
+}
+

@@ -9,9 +9,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import useCloudinaryFileUpload from "@/app/hooks/useCloudinaryFileUpload";
 import Image from "next/image";
-import defaultImage from "../../../../public/default-images/unit-default-image.png";
 import ButtonActionLoader from "@/components/custom/ButtonActionLoader";
-import { supabase } from "@/app/dashboard/components/sheets/AdminCreateSheet";
 import OptionalLabel from "@/components/custom/OptionalLabel";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
@@ -25,6 +23,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { IPartyOut } from "@/app/types/party";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/utils/supabase/supabaseClient";
 
 const formSchema = z.object({
   receiptNumber: z.string().min(5, {
@@ -33,8 +32,8 @@ const formSchema = z.object({
 
   paymentDate: z.coerce.date().default(new Date()),
 
-  party: z.coerce.number({
-    required_error: "Select the party.",
+  party: z.string({
+    required_error: "Party is required.",
   }),
 
   paymentMethod: z.enum(["Cash", "Bank", "Cheque", "Esewa", "Khalti", "IME Pay", "Prabhu Pay", "Connect IPS", "Fone Pay", "Other"], {
@@ -73,7 +72,7 @@ export default function Page() {
     defaultValues: {
       receiptNumber: "",
       paymentDate: new Date(),
-      party: 0,
+      party: "",
       paymentMethod: "Cash",
       receivedAmount: 0,
       note: "",
@@ -81,13 +80,12 @@ export default function Page() {
     },
   });
 
- console.log(form.getValues());
+  console.log(form.getValues());
 
   // Define a submit handler
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-
       setIsCreating(true);
       const { data, error, status } = await supabase.from("Payment-in").insert([values]).select();
 
@@ -113,13 +111,13 @@ export default function Page() {
 
   return (
     <Form {...form}>
-      <DynamicBreadcrumb
+      {/* <DynamicBreadcrumb
         items={[
           { name: "Dashboard", link: "/dashboard" },
           { name: "Categories", link: "/categories" },
           { name: "Create", link: "/categories/create", isCurrentPage: true },
         ]}
-      />
+      /> */}
 
       <form
         onSubmit={form.handleSubmit(onSubmit)}
@@ -183,8 +181,8 @@ export default function Page() {
               <Select
                 {...field}
                 onValueChange={field.onChange}
-                defaultValue={field.name.toString()}
-                value={field.value.toString()}>
+                defaultValue={field.name}
+                value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a type" />
@@ -297,7 +295,7 @@ export default function Page() {
                     <Image
                       width={100}
                       height={100}
-                      src={imageUrl || defaultImage}
+                      src={imageUrl }
                       alt="img"
                       className="p-0.5 rounded-md overflow-hidden h-9 w-9 border"
                     />

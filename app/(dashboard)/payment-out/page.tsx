@@ -11,11 +11,13 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
 import Image from "next/image";
-import { ICategoryOut } from "@/app/types/category";
+import { IPaymentoutOut } from "@/app/types/payment";
 import { supabase } from "@/utils/supabase/supabaseClient";
 
-const columns: ColumnDef<ICategoryOut>[] = [
+
+const columns: ColumnDef<IPaymentoutOut>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -37,25 +39,26 @@ const columns: ColumnDef<ICategoryOut>[] = [
   },
 
   {
-    accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-          Name
-          <CaretSortIcon className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
+    accessorKey: "receiptNumber",
+    header: "receiptNumber",
+    cell: ({ row }) => <div className="capitalize">{row.getValue("receiptNumber")}</div>,
+  },
+  {
+    accessorKey: "party",
+    header: "party",
+    cell: ({ row }) => <div className="capitalize">{row.getValue("party")}</div>,
+  },
+  {
+    accessorKey: "paymentMethod",
+    header: "paymentMethod",
+    cell: ({ row }) => <div className="capitalize">{row.getValue("paymentMethod")}</div>,
+  },
+  {
+    accessorKey: "paidAmount",
+    header: "paidAmount",
+    cell: ({ row }) => <div className="capitalize">{row.getValue("paidAmount")}</div>,
   },
 
-  {
-    accessorKey: "desc",
-    header: "Description",
-    cell: ({ row }) => <div className="capitalize">{row.getValue("desc")}</div>,
-  },
   {
     accessorKey: "image",
     header: "Image",
@@ -64,7 +67,7 @@ const columns: ColumnDef<ICategoryOut>[] = [
       return (
         <div className="">
           <Image
-            src={image}
+            src={image }
             alt="Branch Image"
             width={30}
             height={30}
@@ -80,7 +83,7 @@ const columns: ColumnDef<ICategoryOut>[] = [
     header: "Action",
     cell: ({ row }) => {
       const item = row.original;
-      // console.log(item.id);
+      console.log(item.id);
 
       return (
         <DropdownMenu>
@@ -95,13 +98,13 @@ const columns: ColumnDef<ICategoryOut>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
-            <Link href={`/categories/edit/${item.id}`}>
-              <DropdownMenuItem>Edit category</DropdownMenuItem>
+            <Link href={`/paymentsIn/edit/${item.id}`}>
+              <DropdownMenuItem>Edit payment-in</DropdownMenuItem>
             </Link>
 
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <span className=" flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"> Delete category</span>
+                <span className=" flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"> Delete payment-in</span>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
@@ -112,7 +115,7 @@ const columns: ColumnDef<ICategoryOut>[] = [
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
                     className=" bg-red-500/90"
-                    // onClick={() => deleteCategory(item.id)}
+                    // onClick={() => deletePaymentOut(item.id)}
                     >
                     Continue
                   </AlertDialogAction>
@@ -131,39 +134,47 @@ export default function Page() {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-
+  
   const [refreshNow, setRefreshNow] = useState(false);
-  const [categories, setCategories] = React.useState<ICategoryOut[]>([]);
 
+  const [paymentsOut, setPaymentsOut] = React.useState<IPaymentoutOut[]>([]);
   React.useEffect(() => {
     const fetch = async () => {
-      let { data, error } = await supabase.from("Category").select("*");
-      setCategories(data || []);
+      let { data, error } = await supabase.from("Payment-out").select("*");
+
+      if (error) {
+        throw new Error("Failed to fetch parties");
+      }
+      setPaymentsOut(data || []);
     };
     fetch();
   }, [refreshNow]);
 
+  console.log(paymentsOut);
+
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const deleteCategory = async (id: number) => {
+  const deletePaymentOut = async (id: number) => {
     try {
       setIsDeleting(true);
-      const { error, data, status } = await supabase.from("Category").delete().eq("id", id);
+      const { error, data, status } = await supabase.from("Payment-in").delete().eq("id", id);
 
       setRefreshNow(!refreshNow);
       if (error || status !== 204) {
-        throw new Error("Failed to delete category");
+        throw new Error("Failed to delete payment-in");
       }
-      toast.success(isDeleting ? "Category deleting" : "Category deleted successfully");
+      toast.success(isDeleting ? "Payment-in deleting" : "Payment-in deleted successfully");
     } catch (error) {
-      toast.error("Failed to delete category");
+      toast.error("Failed to delete payment-in");
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const data: ICategoryOut[] = categories;
+
+
+  const data: IPaymentoutOut[] = paymentsOut;
   const table = useReactTable({
-    data: data,
+    data: paymentsOut && paymentsOut || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -183,7 +194,7 @@ export default function Page() {
 
   return (
     <div className="w-full">
-      {isDeleting && toast.success("Deleting ...")}
+      {/* {isDeleting && toast.success("Deleting ...")} */}
       <div className="flex items-center justify-between py-4">
         <Input
           placeholder="Search by name..."
@@ -193,8 +204,8 @@ export default function Page() {
         />
 
         <div className=" space-x-2">
-          <Link href={"/categories/create"}>
-            <Button>Create Category</Button>
+          <Link href={"/payment-out/create"}>
+            <Button>Create payment-in</Button>
           </Link>
 
           <DropdownMenu>
@@ -266,12 +277,16 @@ export default function Page() {
         <div className="space-x-2">
           <Button
             variant="outline"
-            size="sm">
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}>
             Previous
           </Button>
           <Button
             variant="outline"
-            size="sm">
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}>
             Next
           </Button>
         </div>
