@@ -9,12 +9,11 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import useCloudinaryFileUpload from "@/app/hooks/useCloudinaryFileUpload";
 import Image from "next/image";
-import defaultImage from "../../../../public/default-images/unit-default-image.png";
 import ButtonActionLoader from "@/components/custom/ButtonActionLoader";
-import { supabase } from "@/app/dashboard/components/sheets/AdminCreateSheet";
 import OptionalLabel from "@/components/custom/OptionalLabel";
 import { ReloadIcon } from "@radix-ui/react-icons";
-import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
+import DynamicBreadcrumb from "@/components/custom/DynamicBreadcrumb";
+import { supabase } from "@/utils/supabase/supabaseClient";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -26,6 +25,7 @@ const formSchema = z.object({
 
 export default function Page1() {
   const [imageUrl, setImageUrl] = useState<string>("");
+  const { uploading, handleFileUpload } = useCloudinaryFileUpload();
 
   // Define your form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -61,19 +61,16 @@ export default function Page1() {
   useEffect(() => {
     form.setValue("image", imageUrl);
   }, [form, imageUrl]);
-  
-
-  const { uploading, handleFileUpload } = useCloudinaryFileUpload();
 
   return (
     <Form {...form}>
-      <DynamicBreadcrumb
+      {/* <DynamicBreadcrumb
         items={[
           { name: "Dashboard", link: "/dashboard" },
           { name: "Types", link: "/types" },
-          { name: "Create", link: "/types/create", isCurrentPage: true},
+          { name: "Create", link: "/types/create", isCurrentPage: true },
         ]}
-      />
+      /> */}
 
       <form
         onSubmit={form.handleSubmit(onSubmit)}
@@ -107,7 +104,7 @@ export default function Page1() {
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="image"
@@ -131,7 +128,7 @@ export default function Page1() {
                     <Image
                       width={100}
                       height={100}
-                      src={imageUrl || defaultImage}
+                      src={imageUrl }
                       alt="img"
                       className="p-0.5 rounded-md overflow-hidden h-9 w-9 border"
                     />
@@ -154,4 +151,3 @@ export default function Page1() {
     </Form>
   );
 }
-

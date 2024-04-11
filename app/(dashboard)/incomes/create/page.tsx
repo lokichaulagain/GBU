@@ -1,112 +1,90 @@
 "use client";
-import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import useCloudinaryFileUpload from "@/app/hooks/useCloudinaryFileUpload";
 import Image from "next/image";
+import defaultImage from "../../../../public/default-images/unit-default-image.png";
 import ButtonActionLoader from "@/components/custom/ButtonActionLoader";
 import OptionalLabel from "@/components/custom/OptionalLabel";
-import { ReloadIcon } from "@radix-ui/react-icons";
+import { CalendarIcon, ReloadIcon } from "@radix-ui/react-icons";
 import DynamicBreadcrumb from "@/components/custom/DynamicBreadcrumb";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon } from "@radix-ui/react-icons";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { Calendar } from "@/components/ui/calendar";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ITypeOut } from "@/app/types/type";
 import { supabase } from "@/utils/supabase/supabaseClient";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ICategoryOut } from "@/app/types/category";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
+  category: z.string().min(1, {
+    message: "Category is required.",
   }),
 
-  phone: z.coerce.number({
-    required_error: "Phone is required",
-    invalid_type_error: "Phone must be a number",
+  amount: z.string().min(1, {
+    message: "Amount is required.",
   }),
 
-  type: z.string({
-    required_error: "Select the type of party",
-    invalid_type_error: "Type must be a string",
-  }),
+  paymentMethod: z.enum(["Cash", "Online", "Cheque"]),
 
-  openingBalance: z.coerce.number().default(0),
-  openingBalanceDate: z.coerce.date().default(new Date()),
-
-  address: z.string().min(10, {
-    message: "Address must be at least 10 characters.",
-  }),
-
-  email: z.string().min(10, {
-    message: " Email must be at least 10 characters.",
-  }),
-
-  panNumber: z.string().length(10, {
-    message: " Pan Number must be exactly 10 characters.",
-  }),
-
+  note: z.string().optional(),
+  date: z.coerce.date().default(new Date()),
   image: z.string().optional(),
 });
 
-export default function Page() {
+export default function Page1() {
+  const [imageUrl, setImageUrl] = useState<string>("");
+
+  const [categories, setCategories] = React.useState<ICategoryOut[]>([]);
+  React.useEffect(() => {
+    const fetch = async () => {
+      let { data, error } = await supabase.from("Category").select("*");
+      if (error || !data) {
+        throw new Error("Failed to fetch categories");
+      }
+
+      setCategories(data || []);
+    };
+    fetch();
+  }, []);
+  console.log(categories);
+
   // Define your form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      phone: 0,
-      type: "",
-      openingBalance: 0,
-      openingBalanceDate: new Date(),
-      address: "",
-      email: "",
-      panNumber: "",
+      category: "",
+      amount: "",
+      paymentMethod: "Cash",
+      note: "",
+      date: new Date(),
       image: "",
     },
   });
-
-  const [types, setTypes] = React.useState<ITypeOut[]>([]);
-  React.useEffect(() => {
-    const fetch = async () => {
-      let { data, error } = await supabase.from("Type").select("*");
-      if (error || !data) {
-        throw new Error("Failed to fetch types");
-      }
-
-      setTypes(data || []);
-    };
-    fetch();
-  }, []);
-  console.log(types);
-
-  const [imageUrl, setImageUrl] = useState<string>("");
-
-  // console.log(form.getValues());
 
   // Define a submit handler
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsCreating(true);
-      const { data, error, status } = await supabase.from("Party").insert([values]).select();
+      const { data, error, status } = await supabase.from("Income").insert([values]).select();
 
       if (error || status !== 201) {
-        throw new Error("Failed to create party");
+        throw new Error("Failed to create income");
       }
 
-      toast.success("Party created successfully");
+      toast.success("Income created successfully");
       form.reset();
       setImageUrl("");
     } catch (error) {
-      toast.error("Failed to create party");
+      toast.error("Failed to create income");
     } finally {
       setIsCreating(false);
     }
@@ -120,66 +98,45 @@ export default function Page() {
 
   return (
     <Form {...form}>
+      <DynamicBreadcrumb
+        items={[
+          { name: "Dashboard", link: "/dashboard" },
+          { name: "Incomes", link: "/incomes" },
+          { name: "Create", link: "/incomes/create", isCurrentPage: true },
+        ]}
+      />
+
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className=" grid grid-cols-2 gap-4">
         <FormField
           control={form.control}
-          name="name"
+          name="category"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Party Name</FormLabel>
-              <Input
-                {...field}
-                placeholder="Loki Chaulagain"
-              />
-              <FormMessage {...field} />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone</FormLabel>
-              <Input
-                {...field}
-                placeholder=" 9854765769"
-              />
-              <FormMessage {...field} />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Type</FormLabel>
-
-              <Select
-                {...field}
-                onValueChange={field.onChange}
-                defaultValue={field.name}
-                value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {types.map((item) => (
-                    <SelectItem
-                      key={item.id}
-                      value={item.id.toString()}>
-                      {item.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormLabel>Category *</FormLabel>
+              <FormControl>
+                <Select
+                  {...field}
+                  onValueChange={field.onChange}
+                  defaultValue={field.name}
+                  value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {categories.map((item) => (
+                      <SelectItem
+                        key={item.id}
+                        value={item.id.toString()}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -187,22 +144,49 @@ export default function Page() {
 
         <FormField
           control={form.control}
-          name="openingBalance"
+          name="amount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Opening Balance</FormLabel>
-              <Input {...field} />
-              <FormMessage {...field} />
+              <FormLabel>Amount *</FormLabel>
+
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  {...field}
+                />
+              </FormControl>
+
+              <FormMessage />
             </FormItem>
           )}
         />
 
         <FormField
           control={form.control}
-          name="openingBalanceDate"
+          name="note"
           render={({ field }) => (
-            <FormItem className="flex flex-col gap-3">
-              <FormLabel>Opening Balance Date</FormLabel>
+            <FormItem>
+              <FormLabel>
+                Note <OptionalLabel />{" "}
+              </FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Note"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="date"
+          render={({ field }) => (
+            <FormItem className="flex flex-col gap-1 mt-1">
+              <FormLabel>Date *</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
@@ -233,46 +217,32 @@ export default function Page() {
 
         <FormField
           control={form.control}
-          name="address"
+          name="paymentMethod"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Address </FormLabel>
+              <FormLabel> Payment Method *</FormLabel>
+
               <FormControl>
-                <Input
-                  placeholder="Kathmandu, Nepal"
+                <RadioGroup
                   {...field}
-                />
+                  onValueChange={field.onChange}
+                  defaultValue={field.name.toString()}
+                  value={field.value.toString()}
+                  className=" flex  items-center gap-8">
+                  {availablePaymentMethods.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center space-x-2">
+                      <RadioGroupItem
+                        value={item}
+                        id={item}
+                      />
+                      <FormLabel htmlFor="r1">{item}</FormLabel>
+                    </div>
+                  ))}
+                </RadioGroup>
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <Input
-                {...field}
-                placeholder="Email Address"
-              />
-              <FormMessage {...field} />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="panNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Pan Number</FormLabel>
-              <Input
-                {...field}
-                placeholder="Pan Number "
-              />
               <FormMessage {...field} />
             </FormItem>
           )}
@@ -301,7 +271,7 @@ export default function Page() {
                     <Image
                       width={100}
                       height={100}
-                      src={imageUrl}
+                      src={imageUrl || defaultImage}
                       alt="img"
                       className="p-0.5 rounded-md overflow-hidden h-9 w-9 border"
                     />
@@ -317,10 +287,12 @@ export default function Page() {
             type="submit"
             disabled={isCreating}>
             {isCreating && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
-            {isCreating ? " Please wait" : " Create Party"}
+            {isCreating ? " Please wait" : " Create Category"}
           </Button>
         </div>
       </form>
     </Form>
   );
 }
+
+const availablePaymentMethods = ["Cash", "Online", "Cheque"];

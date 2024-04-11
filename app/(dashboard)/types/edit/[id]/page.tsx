@@ -11,11 +11,12 @@ import useCloudinaryFileUpload from "@/app/hooks/useCloudinaryFileUpload";
 import Image from "next/image";
 import defaultImage from "../../../../../public/default-images/unit-default-image.png";
 import ButtonActionLoader from "@/components/custom/ButtonActionLoader";
-import { supabase } from "@/app/dashboard/components/sheets/AdminCreateSheet";
 import OptionalLabel from "@/components/custom/OptionalLabel";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import { useParams } from "next/navigation";
-import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
+import DynamicBreadcrumb from "@/components/custom/DynamicBreadcrumb";
+import { ITypeOut } from "@/app/types/type";
+import { supabase } from "@/utils/supabase/supabaseClient";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -27,20 +28,20 @@ const formSchema = z.object({
 
 export default function Page1() {
   const [imageUrl, setImageUrl] = useState<string>("");
-  const params: any = useParams();
+  const params = useParams() as { id: string };
   const id = parseFloat(params.id);
-  console.log(id);
 
+  const [type, setType] = useState<ITypeOut>();
   const [isFetching, setIsFetching] = useState<boolean>(false);
-  const [type, setType] = useState<any>();
-
   const [refetch, setRefetch] = useState<boolean>(false);
-
   useEffect(() => {
     const fetchType = async () => {
       try {
         setIsFetching(true);
         let { data: Type, error } = await supabase.from("Type").select().eq("id", id).single();
+        if (error) {
+          throw new Error("Failed to fetch type");
+        }
         setType(Type);
         setRefetch(false);
       } catch (error) {
@@ -51,7 +52,6 @@ export default function Page1() {
     };
     fetchType();
   }, [id, refetch]);
-
 
   // Define your form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -108,13 +108,13 @@ export default function Page1() {
 
   return (
     <Form {...form}>
-      <DynamicBreadcrumb
+      {/* <DynamicBreadcrumb
         items={[
           { name: "Dashboard", link: "/dashboard" },
           { name: "Types", link: "/types" },
           { name: "Edit", link: "/types/edit", isCurrentPage: true },
         ]}
-      />
+      /> */}
 
       <form
         onSubmit={form.handleSubmit(onSubmit)}

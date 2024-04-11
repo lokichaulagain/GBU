@@ -7,11 +7,11 @@ import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import useCloudinaryFileUpload from "@/app/hooks/useCloudinaryFileUpload";
-import { supabase } from "@/app/dashboard/components/sheets/AdminCreateSheet";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import { useParams } from "next/navigation";
-import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
+import DynamicBreadcrumb from "@/components/custom/DynamicBreadcrumb";
+import { IUnitOut } from "@/app/types/unit";
+import { supabase } from "@/utils/supabase/supabaseClient";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -20,30 +20,31 @@ const formSchema = z.object({
   shortForm: z.string().optional(),
 });
 
-export default function Page1() {
-  const [imageUrl, setImageUrl] = useState<string>("");
-  const params: any = useParams();
+export default function Page() {
+  const params = useParams() as { id: string };
   const id = parseFloat(params.id);
-  console.log(id);
 
   const [isFetching, setIsFetching] = useState<boolean>(false);
-  const [unit, setUnit] = useState<any>();
+  const [unit, setUnit] = useState<IUnitOut>();
 
   const [refetch, setRefetch] = useState<boolean>(false);
-
   useEffect(() => {
     const fetchUnit = async () => {
+      setIsFetching(true);
       try {
-        setIsFetching(true);
-        let { data: Unit, error } = await supabase.from("Unit").select().eq("id", id).single();
+        const { data: Unit, error } = await supabase.from("Unit").select().eq("id", id).single();
+        if (error) {
+          throw new Error("Failed to fetch unit");
+        }
         setUnit(Unit);
         setRefetch(false);
       } catch (error) {
-        console.error("Failed to fetch unit");
+        console.error("Failed to fetch unit:", error);
       } finally {
         setIsFetching(false);
       }
     };
+
     fetchUnit();
   }, [id, refetch]);
 
@@ -78,7 +79,6 @@ export default function Page1() {
 
       toast.success("Unit updated successfully");
       form.reset();
-      setImageUrl("");
       setRefetch(true);
     } catch (error) {
       toast.error("Failed to update unit");
@@ -87,17 +87,15 @@ export default function Page1() {
     }
   };
 
-  const { uploading, handleFileUpload } = useCloudinaryFileUpload();
-
   return (
     <Form {...form}>
-      <DynamicBreadcrumb
+      {/* <DynamicBreadcrumb
         items={[
           { name: "Dashboard", link: "/dashboard" },
           { name: "Units", link: "/units" },
           { name: "Edit", link: "/units/edit", isCurrentPage: true },
         ]}
-      />
+      /> */}
 
       <form
         onSubmit={form.handleSubmit(onSubmit)}

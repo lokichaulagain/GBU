@@ -1,12 +1,12 @@
 "use client";
 import CollapsibleTab from "./CollapsibleTab";
-import { MyTable } from "./MyTable";
+// import { MyTable } from "./MyTable";
 import { Home, Menu, Settings, User2 } from "lucide-react";
 import AdminCircleUser from "./AdminCircleUser";
 import AdminNotification from "./AdminNotification";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import BreadCum from "./BreadCum";
+// import BreadCum from "./BreadCum";
 type Props = {};
 
 export default function AdminSideMenu({}: Props) {
@@ -43,11 +43,11 @@ export default function AdminSideMenu({}: Props) {
             <AdminCircleUser />
           </div>
         </div>
-        <div className=" px-4 mt-8 ">
+        {/* <div className=" px-4 mt-8 ">
           <BreadCum />
 
           <MyTable />
-        </div>
+        </div> */}
       </div>
     </div>
   );

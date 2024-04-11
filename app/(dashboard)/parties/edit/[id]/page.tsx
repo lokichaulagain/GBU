@@ -4,23 +4,27 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import useCloudinaryFileUpload from "@/app/hooks/useCloudinaryFileUpload";
+import { ReloadIcon } from "@radix-ui/react-icons";
+import { useParams } from "next/navigation";
+import DynamicBreadcrumb from "@/components/custom/DynamicBreadcrumb";
+import { IPartyIn } from "@/app/types/party";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 import ButtonActionLoader from "@/components/custom/ButtonActionLoader";
 import OptionalLabel from "@/components/custom/OptionalLabel";
-import { ReloadIcon } from "@radix-ui/react-icons";
-import DynamicBreadcrumb from "@/components/custom/DynamicBreadcrumb";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { FormControl } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ITypeOut } from "@/app/types/type";
+import useCloudinaryFileUpload from "@/app/hooks/useCloudinaryFileUpload";
+import defaultImage from "../../../../../public/default-images/unit-default-image.png";
 import { supabase } from "@/utils/supabase/supabaseClient";
 
 const formSchema = z.object({
@@ -33,9 +37,9 @@ const formSchema = z.object({
     invalid_type_error: "Phone must be a number",
   }),
 
-  type: z.string({
+  type: z.coerce.number({
     required_error: "Select the type of party",
-    invalid_type_error: "Type must be a string",
+    invalid_type_error: "Type must be a number",
   }),
 
   openingBalance: z.coerce.number().default(0),
@@ -57,13 +61,52 @@ const formSchema = z.object({
 });
 
 export default function Page() {
+  const params = useParams() as { id: string };
+  const id = parseFloat(params.id);
+
+  const [imageUrl, setImageUrl] = useState<string>("");
+
+  const [types, setTypes] = React.useState<ITypeOut[]>([]);
+  React.useEffect(() => {
+    const fetch = async () => {
+      let { data, error } = await supabase.from("Type").select("*");
+      setTypes(data || []);
+    };
+    fetch();
+  }, []);
+  console.log(types);
+
+  const [isFetching, setIsFetching] = useState<boolean>(false);
+  const [party, setParty] = useState<IPartyIn>();
+
+  const [refetch, setRefetch] = useState<boolean>(false);
+  useEffect(() => {
+    const fetchParty = async () => {
+      setIsFetching(true);
+      try {
+        const { data: Party, error } = await supabase.from("Party").select().eq("id", id).single();
+        if (error) {
+          throw new Error("Failed to fetch type");
+        }
+        setParty(Party);
+        setRefetch(false);
+      } catch (error) {
+        console.error("Failed to fetch type:", error);
+      } finally {
+        setIsFetching(false);
+      }
+    };
+
+    fetchParty();
+  }, [id, refetch]);
+
   // Define your form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       phone: 0,
-      type: "",
+      type: 0,
       openingBalance: 0,
       openingBalanceDate: new Date(),
       address: "",
@@ -73,42 +116,45 @@ export default function Page() {
     },
   });
 
-  const [types, setTypes] = React.useState<ITypeOut[]>([]);
-  React.useEffect(() => {
-    const fetch = async () => {
-      let { data, error } = await supabase.from("Type").select("*");
-      if (error || !data) {
-        throw new Error("Failed to fetch types");
+  useEffect(() => {
+    if (party) {
+      form.reset({
+        name: party.name || "",
+        phone: party.phone || 0,
+        type: party.type || 0,
+        openingBalance: party.openingBalance || 0,
+        openingBalanceDate: party.openingBalanceDate || new Date(),
+        address: party.address || "",
+        email: party.email || "",
+        panNumber: party.panNumber || "",
+        image: party.image || "",
+      });
+
+      const selectedType: ITypeOut | undefined = types.find((item) => item.id === party.type);
+      if (selectedType) {
+        form.setValue("type", selectedType.id);
       }
-
-      setTypes(data || []);
-    };
-    fetch();
-  }, []);
-  console.log(types);
-
-  const [imageUrl, setImageUrl] = useState<string>("");
-
-  // console.log(form.getValues());
+    }
+  }, [form, party, types]);
 
   // Define a submit handler
-  const [isCreating, setIsCreating] = useState<boolean>(false);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      setIsCreating(true);
-      const { data, error, status } = await supabase.from("Party").insert([values]).select();
+      setIsUpdating(true);
+      const { data, error, status } = await supabase.from("Party").update(values).eq("id", id).select();
 
-      if (error || status !== 201) {
-        throw new Error("Failed to create party");
+      if (error || status !== 200) {
+        throw new Error("Failed to update party");
       }
 
-      toast.success("Party created successfully");
+      toast.success("Party updated successfully");
       form.reset();
-      setImageUrl("");
+      setRefetch(true);
     } catch (error) {
-      toast.error("Failed to create party");
+      toast.error("Failed to update party");
     } finally {
-      setIsCreating(false);
+      setIsUpdating(false);
     }
   };
 
@@ -118,8 +164,18 @@ export default function Page() {
 
   const { uploading, handleFileUpload } = useCloudinaryFileUpload();
 
+  console.log(party);
+
   return (
     <Form {...form}>
+      {/* <DynamicBreadcrumb
+        items={[
+          { name: "Dashboard", link: "/dashboard" },
+          { name: "Parties", link: "/parties" },
+          { name: "Edit", link: "/parties/edit", isCurrentPage: true },
+        ]}
+      /> */}
+
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className=" grid grid-cols-2 gap-4">
@@ -159,12 +215,11 @@ export default function Page() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Type</FormLabel>
-
               <Select
                 {...field}
                 onValueChange={field.onChange}
-                defaultValue={field.name}
-                value={field.value}>
+                defaultValue={field.name.toString()}
+                value={field.value.toString()}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a type" />
@@ -201,14 +256,14 @@ export default function Page() {
           control={form.control}
           name="openingBalanceDate"
           render={({ field }) => (
-            <FormItem className="flex flex-col gap-3">
-              <FormLabel>Opening Balance Date</FormLabel>
+            <FormItem className="flex flex-col hap-4">
+              <FormLabel>Date of birth</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
                       variant={"outline"}
-                      className={cn(" w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                      className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
                       {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
                       <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                     </Button>
@@ -239,7 +294,7 @@ export default function Page() {
               <FormLabel>Address </FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Kathmandu, Nepal"
+                  placeholder="Address"
                   {...field}
                 />
               </FormControl>
@@ -254,10 +309,7 @@ export default function Page() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Email</FormLabel>
-              <Input
-                {...field}
-                placeholder="Email Address"
-              />
+              <Input {...field} />
               <FormMessage {...field} />
             </FormItem>
           )}
@@ -269,10 +321,7 @@ export default function Page() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Pan Number</FormLabel>
-              <Input
-                {...field}
-                placeholder="Pan Number "
-              />
+              <Input {...field} />
               <FormMessage {...field} />
             </FormItem>
           )}
@@ -301,7 +350,7 @@ export default function Page() {
                     <Image
                       width={100}
                       height={100}
-                      src={imageUrl}
+                      src={imageUrl || defaultImage}
                       alt="img"
                       className="p-0.5 rounded-md overflow-hidden h-9 w-9 border"
                     />
@@ -315,9 +364,9 @@ export default function Page() {
         <div className=" mt-8 space-x-2">
           <Button
             type="submit"
-            disabled={isCreating}>
-            {isCreating && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
-            {isCreating ? " Please wait" : " Create Party"}
+            disabled={isUpdating}>
+            {isUpdating && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
+            {isUpdating ? " Please wait" : " Update Party"}
           </Button>
         </div>
       </form>

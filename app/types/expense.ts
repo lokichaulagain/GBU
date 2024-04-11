@@ -1,15 +1,19 @@
-import { IExpenseCategoryOut } from "./expenseCategory";
-
 export interface IExpenseOut {
-  _id: string;
-  expenseCategory: IExpenseCategoryOut;
+  id: number;
+  category: number;
   amount: number;
   paymentMethod: string;
-  date: string;
-  note: string;
-  image: string;
-  expenseId: string;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
+  date: Date;
+  note?: string;
+  image?: string;
+  created_at: Date;
+}
+
+export interface IExpenseIn {
+  category: number;
+  amount: number;
+  paymentMethod: string;
+  date: Date;
+  note?: string;
+  image?: string;
 }
