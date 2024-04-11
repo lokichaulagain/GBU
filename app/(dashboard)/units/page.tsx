@@ -15,106 +15,8 @@ import DynamicBreadcrumb from "@/components/custom/DynamicBreadcrumb";
 import { IUnitOut } from "@/app/types/unit";
 import moment from "moment";
 import { supabase } from "@/utils/supabase/supabaseClient";
-
-const columns: ColumnDef<IUnitOut>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-
-  {
-    accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-          Name
-          <CaretSortIcon className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
-  },
-
-  {
-    accessorKey: "shortForm",
-    header: "Short Form",
-    cell: ({ row }) => <div className="capitalize">{row.getValue("shortForm")}</div>,
-  },
-
-  {
-    accessorKey: "created_at",
-    header: "Created Date",
-    cell: ({ row }) => <div className="capitalize">{moment(row.getValue("created_at")).format("MMM Do YY")}</div>,
-  },
-
-  {
-    id: "actions",
-    enableHiding: false,
-    header: "Action",
-    cell: ({ row }) => {
-      const item = row.original;
-      console.log(item.id);
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <DotsHorizontalIcon className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-
-            <Link href={`/units/edit/${item.id}`}>
-              <DropdownMenuItem>Edit unit</DropdownMenuItem>
-            </Link>
-
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <span className=" flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"> Delete unit</span>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>This action cannot be undone. This will permanently delete your account and remove your data from our servers.</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    className=" bg-red-500/90"
-                    // onClick={() => deleteUnit(item.id)}
-                    >
-                    Continue
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-  },
-];
+import UnitCreateDialog from "./(components)/UnitCreateDialog";
+import UnitEditDialog from "./(components)/UnitEditDialog";
 
 export default function Page() {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -133,6 +35,7 @@ export default function Page() {
       }
 
       setUnits(data || []);
+      setRefreshNow(false);
     };
     fetch();
   }, [refreshNow]);
@@ -147,7 +50,7 @@ export default function Page() {
         throw new Error("Failed to delete unit");
       }
 
-      setRefreshNow(!refreshNow);
+      setRefreshNow(true);
       toast.success(isDeleting ? "Unit deleting" : "Unit deleted successfully");
     } catch (error) {
       toast.error("Failed to delete unit");
@@ -155,6 +58,109 @@ export default function Page() {
       setIsDeleting(false);
     }
   };
+
+  const [currentUnitId, setCurrentUnitId] = useState<number>(0);
+  console.log(currentUnitId, "selected unit id");
+
+  const columns: ColumnDef<IUnitOut>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+
+    {
+      accessorKey: "name",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Name
+            <CaretSortIcon className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div>{row.getValue("name")}</div>,
+    },
+
+    {
+      accessorKey: "shortForm",
+      header: "Short Form",
+      cell: ({ row }) => <div>{row.getValue("shortForm")}</div>,
+    },
+
+    {
+      accessorKey: "created_at",
+      header: "Created Date",
+      cell: ({ row }) => <div className="capitalize">{moment(row.getValue("created_at")).format("MMM Do YY")}</div>,
+    },
+
+    {
+      id: "actions",
+      enableHiding: false,
+      header: "Action",
+      cell: ({ row }) => {
+        const item = row.original;
+        console.log(item.id);
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <DotsHorizontalIcon className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+
+              <UnitEditDialog
+                id={item.id}
+                setRefreshNow={setRefreshNow}
+              />
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <span className=" flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-red-500/90"> Delete unit</span>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>This action cannot be undone. This will permanently delete your account and remove your data from our servers.</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      className=" bg-red-500/90 hover:bg-red-500"
+                      onClick={() => deleteUnit(item.id)}>
+                      Continue
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
 
   const data: IUnitOut[] = units;
   const table = useReactTable({
@@ -178,7 +184,14 @@ export default function Page() {
 
   return (
     <div className="w-full">
-      {/* {isDeleting && toast.success("Deleting ...")} */}
+      <DynamicBreadcrumb
+        items={[
+          { name: "Dashboard", link: "/dashboard" },
+          { name: "Units", link: "/units", isCurrentPage: true },
+        ]}
+      />
+
+      {isDeleting && toast.success("Deleting ...")}
       <div className="flex items-center justify-between py-4">
         <Input
           placeholder="Search by name..."
@@ -188,9 +201,7 @@ export default function Page() {
         />
 
         <div className=" space-x-2">
-          <Link href={"/units/create"}>
-            <Button>Create Unit</Button>
-          </Link>
+          <UnitCreateDialog setRefreshNow={setRefreshNow} />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

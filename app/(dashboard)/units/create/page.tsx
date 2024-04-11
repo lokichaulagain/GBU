@@ -11,11 +11,18 @@ import useCloudinaryFileUpload from "@/app/hooks/useCloudinaryFileUpload";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import DynamicBreadcrumb from "@/components/custom/DynamicBreadcrumb";
 import { supabase } from "@/utils/supabase/supabaseClient";
+import OptionalLabel from "@/components/custom/OptionalLabel";
 
 const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
-  }),
+  name: z
+    .string()
+    .min(2, {
+      message: "Name must be between 2-20 characters.",
+    })
+    .max(20, {
+      message: "Name must be between 2-20 characters.",
+    }),
+
   shortForm: z.string().optional(),
 });
 
@@ -49,16 +56,15 @@ export default function Page() {
     }
   };
 
-
   return (
     <Form {...form}>
-      {/* <DynamicBreadcrumb
+      <DynamicBreadcrumb
         items={[
           { name: "Dashboard", link: "/dashboard" },
           { name: "Units", link: "/units" },
           { name: "Create", link: "/units/create", isCurrentPage: true },
         ]}
-      /> */}
+      />
 
       <form
         onSubmit={form.handleSubmit(onSubmit)}
@@ -83,7 +89,9 @@ export default function Page() {
           name="shortForm"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Short Form</FormLabel>
+              <FormLabel>
+                Short Form <OptionalLabel />{" "}
+              </FormLabel>
               <Input
                 placeholder="Short Form "
                 {...field}
@@ -93,7 +101,7 @@ export default function Page() {
           )}
         />
 
-        <div className=" mt-8 space-x-2">
+        <div className="  space-x-2">
           <Button
             type="submit"
             disabled={isCreating}>
