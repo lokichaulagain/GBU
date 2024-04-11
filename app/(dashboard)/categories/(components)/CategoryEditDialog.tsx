@@ -8,10 +8,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/utils/supabase/supabaseClient";
 import { toast } from "sonner";
-import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ReloadIcon } from "@radix-ui/react-icons";
-import { IUnitOut } from "@/app/types/unit";
 import DialogTriggerAction from "@/components/custom/DialogTriggerAction";
+import { ICategoryOut } from "@/app/types/category";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Props = {
   id: number;
@@ -28,65 +29,58 @@ const formSchema = z.object({
       message: "Name must be between 2-20 characters.",
     }),
 
-  shortForm: z
-    .string()
-    .min(1, {
-      message: "Short form must be between 1-10 characters.",
-    })
-    .max(10, {
-      message: "Short form must be between 1-10 characters.",
-    }),
+  type: z.enum(["income", "expense"]),
 });
 
-export default function UnitEditDialog({ id, setRefreshNow }: Props) {
+export default function CategoryEditDialog({ id, setRefreshNow }: Props) {
   // Define your form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      shortForm: "",
+      type: undefined,
     },
   });
 
   const [isFetching, setIsFetching] = useState<boolean>(false);
-  const [unit, setUnit] = useState<IUnitOut>();
+  const [category, setCategory] = useState<ICategoryOut>();
   useEffect(() => {
-    const fetchUnit = async () => {
+    const fetch = async () => {
       try {
         setIsFetching(true);
-        const { data: Unit, error } = await supabase.from("Unit").select().eq("id", id).single();
+        const { data, error } = await supabase.from("Category").select().eq("id", id).single();
         if (error) {
-          throw new Error("Failed to fetch unit");
+          throw new Error("Failed to fetch category");
         }
-        setUnit(Unit);
+        setCategory(data);
       } catch (error) {
-        console.error("Failed to fetch unit:", error);
+        console.error("Failed to fetch category:", error);
       } finally {
         setIsFetching(false);
       }
     };
 
-    fetchUnit();
+    fetch();
   }, [id]);
 
   useEffect(() => {
-    if (unit) {
+    if (category) {
       form.reset({
-        name: unit.name || "",
-        shortForm: unit.shortForm || "",
+        name: category.name || "",
+        type: category.type || "",
       });
     }
-  }, [form, unit]);
+  }, [form, category]);
 
   // Define a submit handler
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsUpdating(true);
-      const { data, error, status } = await supabase.from("Unit").update(values).eq("id", id);
+      const { data, error, status } = await supabase.from("Category").update(values).eq("id", id);
 
       if (error || status !== 204) {
-        let errorMessage = "Failed to update unit";
+        let errorMessage = "Failed to update category";
         if (error && error.message) {
           errorMessage = error.message;
         }
@@ -95,7 +89,7 @@ export default function UnitEditDialog({ id, setRefreshNow }: Props) {
 
       setRefreshNow(true);
       form.reset();
-      toast.success("Unit updated successfully");
+      toast.success("Category updated successfully");
     } catch (error: any) {
       toast.error(error.message || "An error occurred during update. Please try again.");
     } finally {
@@ -107,12 +101,12 @@ export default function UnitEditDialog({ id, setRefreshNow }: Props) {
     <Dialog>
       <DialogTrigger asChild>
         <p>
-          <DialogTriggerAction title="Edit unit" />
+          <DialogTriggerAction title="Edit category" />
         </p>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[725px]">
         <DialogHeader>
-          <DialogTitle>Update unit</DialogTitle>
+          <DialogTitle>Update category</DialogTitle>
           <DialogDescription>Make changes to your profile here. Click save when youre done.</DialogDescription>
         </DialogHeader>
 
@@ -124,9 +118,9 @@ export default function UnitEditDialog({ id, setRefreshNow }: Props) {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Unit Name *</FormLabel>
+                    <FormLabel>Category Name *</FormLabel>
                     <Input
-                      placeholder="CENTIMETER"
+                      placeholder="TRAVEL EXPENSES"
                       {...field}
                     />
                     <FormMessage />
@@ -136,14 +130,31 @@ export default function UnitEditDialog({ id, setRefreshNow }: Props) {
 
               <FormField
                 control={form.control}
-                name="shortForm"
+                name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Short Form *</FormLabel>
-                    <Input
-                      placeholder="CM"
-                      {...field}
-                    />
+                    <FormLabel>Type *</FormLabel>
+                    <FormControl>
+                      <Select
+                        {...field}
+                        onValueChange={field.onChange}
+                        defaultValue={field.name}
+                        value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Type" />
+                          </SelectTrigger>
+                        </FormControl>
+
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Types</SelectLabel>
+                            <SelectItem value="income">Income</SelectItem>
+                            <SelectItem value="expense">Expense</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -155,7 +166,7 @@ export default function UnitEditDialog({ id, setRefreshNow }: Props) {
                 type="submit"
                 disabled={isUpdating}>
                 {isUpdating && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
-                {isUpdating ? " Please wait" : " Update Unit"}
+                {isUpdating ? " Please wait" : " Update Category"}
               </Button>
             </div>
           </form>

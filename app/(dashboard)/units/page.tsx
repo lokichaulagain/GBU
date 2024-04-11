@@ -7,7 +7,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import Link from "next/link";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useState } from "react";
@@ -58,9 +57,6 @@ export default function Page() {
       setIsDeleting(false);
     }
   };
-
-  const [currentUnitId, setCurrentUnitId] = useState<number>(0);
-  console.log(currentUnitId, "selected unit id");
 
   const columns: ColumnDef<IUnitOut>[] = [
     {

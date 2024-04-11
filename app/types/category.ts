@@ -1,7 +1,6 @@
 export interface ICategoryOut {
   id: number;
   name: string;
-  image: string;
-  desc: string;
+  type: "income" | "expense";
   created_at: string;
 }
