@@ -1,15 +1,10 @@
-import { IIncomeCategoryOut } from "./incomeCategory";
-
 export interface IIncomeOut {
-  _id: string;
-  incomeCategory: IIncomeCategoryOut;
+  id: number;
+  category: number;
   amount: number;
   paymentMethod: string;
-  date: string;
-  note: string;
-  image: string;
-  incomeId: string;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
+  date: Date;
+  note?: string;
+  image?: string;
+  created_at: Date;
 }

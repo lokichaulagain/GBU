@@ -32,8 +32,8 @@ const formSchema = z.object({
 
   paymentDate: z.coerce.date().default(new Date()),
 
-  party: z.string({
-    required_error: "Party is required.",
+  party: z.string().min(1,{
+    message: "Select the party.",
   }),
 
   paymentMethod: z.enum(["Cash", "Bank", "Cheque", "Esewa", "Khalti", "IME Pay", "Prabhu Pay", "Connect IPS", "Fone Pay", "Other"], {
