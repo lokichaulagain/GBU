@@ -20,22 +20,19 @@ import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { ICategoryOut } from "@/app/types/category";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const formSchema = z.object({
-  category: z.coerce.number({
-    required_error: "Category is required.",
+  category: z.string().min(1, {
+    message: "Category is required.",
   }),
 
-  amount: z.coerce.number({
-    required_error: "Amount is required.",
+  amount: z.string().min(1, {
+    message: "Amount is required.",
   }),
 
-  paymentMethod: z.enum(["Cash", "Online", "Cheque"], {
-    required_error: "Payment Method is required.",
-  }),
+  paymentMethod: z.enum(["Cash", "Online", "Cheque"]),
 
   note: z.string().optional(),
   date: z.coerce.date().default(new Date()),
@@ -63,8 +60,8 @@ export default function Page1() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      category: 0,
-      amount: 0,
+      category: "",
+      amount: "",
       paymentMethod: "Cash",
       note: "",
       date: new Date(),
@@ -101,13 +98,13 @@ export default function Page1() {
 
   return (
     <Form {...form}>
-      {/* <DynamicBreadcrumb
+      <DynamicBreadcrumb
         items={[
           { name: "Dashboard", link: "/dashboard" },
-          { name: "Categories", link: "/categories" },
-          { name: "Create", link: "/categories/create", isCurrentPage: true},
+          { name: "Incomes", link: "/incomes" },
+          { name: "Create", link: "/incomes/create", isCurrentPage: true },
         ]}
-      /> */}
+      />
 
       <form
         onSubmit={form.handleSubmit(onSubmit)}
@@ -117,28 +114,29 @@ export default function Page1() {
           name="category"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Type</FormLabel>
-
-              <Select
-                {...field}
-                onValueChange={field.onChange}
-                defaultValue={field.name}
-                value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {categories.map((item) => (
-                    <SelectItem
-                      key={item.id}
-                      value={item.id.toString()}>
-                      {item.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormLabel>Category *</FormLabel>
+              <FormControl>
+                <Select
+                  {...field}
+                  onValueChange={field.onChange}
+                  defaultValue={field.name}
+                  value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {categories.map((item) => (
+                      <SelectItem
+                        key={item.id}
+                        value={item.id.toString()}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -150,10 +148,15 @@ export default function Page1() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Amount *</FormLabel>
-              <Input
-                placeholder="0"
-                {...field}
-              />
+
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  {...field}
+                />
+              </FormControl>
+
               <FormMessage />
             </FormItem>
           )}
@@ -167,10 +170,12 @@ export default function Page1() {
               <FormLabel>
                 Note <OptionalLabel />{" "}
               </FormLabel>
-              <Input
-                placeholder="Note"
-                {...field}
-              />
+              <FormControl>
+                <Input
+                  placeholder="Note"
+                  {...field}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -180,8 +185,8 @@ export default function Page1() {
           control={form.control}
           name="date"
           render={({ field }) => (
-            <FormItem className="flex flex-col gap-3">
-              <FormLabel>Date</FormLabel>
+            <FormItem className="flex flex-col gap-1 mt-1">
+              <FormLabel>Date *</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
@@ -215,33 +220,28 @@ export default function Page1() {
           name="paymentMethod"
           render={({ field }) => (
             <FormItem>
-              <FormLabel> Payment Method</FormLabel>
+              <FormLabel> Payment Method *</FormLabel>
 
-              <RadioGroup
-                {...field}
-                onValueChange={field.onChange}
-                defaultValue={field.name.toString()}
-                value={field.value.toString()}>
-                {availablePaymentMethods.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center space-x-2">
-                    <RadioGroupItem
-                      value={item}
-                      id={item}
-                    />
-                    <FormLabel htmlFor="r1">{item}</FormLabel>
-                  </div>
-                ))}
-
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem
-                    value="comfortable"
-                    id="r2"
-                  />
-                  <Label htmlFor="r2">Comfortable</Label>
-                </div>
-              </RadioGroup>
+              <FormControl>
+                <RadioGroup
+                  {...field}
+                  onValueChange={field.onChange}
+                  defaultValue={field.name.toString()}
+                  value={field.value.toString()}
+                  className=" flex  items-center gap-8">
+                  {availablePaymentMethods.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center space-x-2">
+                      <RadioGroupItem
+                        value={item}
+                        id={item}
+                      />
+                      <FormLabel htmlFor="r1">{item}</FormLabel>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </FormControl>
 
               <FormMessage {...field} />
             </FormItem>

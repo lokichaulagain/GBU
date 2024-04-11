@@ -8,3 +8,12 @@ export interface IExpenseOut {
   image?: string;
   created_at: Date;
 }
+
+export interface IExpenseIn {
+  category: number;
+  amount: number;
+  paymentMethod: string;
+  date: Date;
+  note?: string;
+  image?: string;
+}
