@@ -134,7 +134,7 @@ export default function Page() {
 
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <span className=" flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-red-500/90"> Delete unit</span>
+                  <span className=" flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-red-500/90"> Delete category</span>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
@@ -183,7 +183,7 @@ export default function Page() {
       <DynamicBreadcrumb
         items={[
           { name: "Dashboard", link: "/dashboard" },
-          { name: "Units", link: "/units", isCurrentPage: true },
+          { name: "Categories", link: "/categories", isCurrentPage: true },
         ]}
       />
 
