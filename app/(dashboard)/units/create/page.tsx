@@ -3,7 +3,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -34,7 +40,10 @@ export default function Page() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsCreating(true);
-      const { data, error, status } = await supabase.from("Unit").insert([values]).select();
+      const { data, error, status } = await supabase
+        .from("Unit")
+        .insert([values])
+        .select();
 
       if (error || status !== 201) {
         throw new Error("Failed to create unit");
@@ -49,30 +58,27 @@ export default function Page() {
     }
   };
 
-
   return (
     <Form {...form}>
-      {/* <DynamicBreadcrumb
+      <DynamicBreadcrumb
         items={[
           { name: "Dashboard", link: "/dashboard" },
           { name: "Units", link: "/units" },
           { name: "Create", link: "/units/create", isCurrentPage: true },
         ]}
-      /> */}
+      />
 
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className=" grid grid-cols-2 gap-4">
+        className=" grid grid-cols-2 gap-4"
+      >
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Unit Name *</FormLabel>
-              <Input
-                placeholder="Unit Name"
-                {...field}
-              />
+              <Input placeholder="Unit Name" {...field} />
               <FormMessage />
             </FormItem>
           )}
@@ -84,19 +90,14 @@ export default function Page() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Short Form</FormLabel>
-              <Input
-                placeholder="Short Form "
-                {...field}
-              />
+              <Input placeholder="Short Form " {...field} />
               <FormMessage />
             </FormItem>
           )}
         />
 
         <div className=" mt-8 space-x-2">
-          <Button
-            type="submit"
-            disabled={isCreating}>
+          <Button type="submit" disabled={isCreating}>
             {isCreating && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
             {isCreating ? " Please wait" : " Create Unit"}
           </Button>
