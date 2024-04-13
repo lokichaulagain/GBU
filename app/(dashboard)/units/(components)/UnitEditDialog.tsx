@@ -51,22 +51,23 @@ export default function UnitEditDialog({ id, setRefreshNow }: Props) {
   const [isFetching, setIsFetching] = useState<boolean>(false);
   const [unit, setUnit] = useState<IUnitOut>();
   useEffect(() => {
-    const fetchUnit = async () => {
-      try {
-        setIsFetching(true);
-        const { data: Unit, error } = await supabase.from("Unit").select().eq("id", id).single();
-        if (error) {
-          throw new Error("Failed to fetch unit");
-        }
-        setUnit(Unit);
-      } catch (error) {
-        console.error("Failed to fetch unit:", error);
-      } finally {
+    const fetch = async () => {
+      setIsFetching(true);
+      const { data, error, status } = await supabase.from("Unit").select().eq("id", id).single();
+
+      if (error) {
+        console.error("Failed to fetch unit:", error.message);
+        setIsFetching(false);
+        return;
+      }
+
+      if (status === 200 && data) {
+        setUnit(data);
         setIsFetching(false);
       }
     };
 
-    fetchUnit();
+    fetch();
   }, [id]);
 
   useEffect(() => {
@@ -81,25 +82,21 @@ export default function UnitEditDialog({ id, setRefreshNow }: Props) {
   // Define a submit handler
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      setIsUpdating(true);
-      const { data, error, status } = await supabase.from("Unit").update(values).eq("id", id);
+    setIsUpdating(true);
+    const { data, error, status } = await supabase.from("Unit").update(values).eq("id", id);
 
-      if (error || status !== 204) {
-        let errorMessage = "Failed to update unit";
-        if (error && error.message) {
-          errorMessage = error.message;
-        }
-        throw new Error(errorMessage);
-      }
+    if (error) {
+      setIsUpdating(false);
+      toast.error(error.details || "An error occurred during update. Please try again.");
+      return;
+    }
 
+    if (status == 204) {
       setRefreshNow(true);
       form.reset();
-      toast.success("Unit updated successfully");
-    } catch (error: any) {
-      toast.error(error.message || "An error occurred during update. Please try again.");
-    } finally {
       setIsUpdating(false);
+      toast.success("Unit updated successfully.");
+      return;
     }
   };
 

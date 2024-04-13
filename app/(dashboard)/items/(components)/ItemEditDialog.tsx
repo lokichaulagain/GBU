@@ -11,15 +11,14 @@ import { toast } from "sonner";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import DialogTriggerAction from "@/components/custom/DialogTriggerAction";
-import { IItemIn } from "@/app/types/item";
-import { Database } from "lucide-react";
+import {  IItemOut } from "@/app/types/item";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { IUnitOut } from "@/app/types/unit";
 import { ICategoryOut } from "@/app/types/category";
 
 type Props = {
   id: number;
-  setRefreshNow: any;
+  setRefreshNow: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const formSchema = z.object({
@@ -27,18 +26,18 @@ const formSchema = z.object({
     message: "Name must be at least 2 characters.",
   }),
 
-  category: z.number().min(1, {
-    message: "Category is required",
+  category: z.string().min(1, {
+    message: "Category is required.",
   }),
 
-  unit: z.number().min(1, {
-    message: "Unit is required",
+  unit: z.string().min(1, {
+    message: "Unit is required.",
   }),
 
-  sp: z.number().optional(),
-  cp: z.number().optional(),
+  sp: z.coerce.number().optional(),
+  cp: z.coerce.number().optional(),
 
-  openingStock: z.number().optional(),
+  openingStock: z.coerce.number().optional(),
   asOfDate: z.coerce.date().default(new Date()),
 
   itemCode: z.string().optional(),
@@ -52,8 +51,8 @@ export default function ItemEditDialog({ id, setRefreshNow }: Props) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      category: 0,
-      unit: 0,
+      category: "",
+      unit: "",
       sp: 0,
       cp: 0,
       openingStock: 0,
@@ -68,44 +67,52 @@ export default function ItemEditDialog({ id, setRefreshNow }: Props) {
   const [categories, setCategories] = React.useState<ICategoryOut[]>([]);
   React.useEffect(() => {
     const fetch = async () => {
-      let { data, error } = await supabase.from("Category").select("*");
-      if (error || !data) {
-        throw new Error("Failed to fetch categories");
+      let { data, error, status } = await supabase.from("Category").select("*");
+
+      if (error) {
+        console.error("Failed to fetch categories:", error.message);
+        return;
       }
 
-      setCategories(data || []);
+      if (status === 200 && data) {
+        setCategories(data);
+      }
     };
     fetch();
   }, []);
-  console.log(categories);
 
-  const [units, setUnits] = useState<IUnitOut[]>();
+  const [units, setUnits] = useState<IUnitOut[]>([]);
   React.useEffect(() => {
     const fetch = async () => {
-      let { data, error } = await supabase.from("Unit").select("*");
-      if (error || !data) {
-        throw new Error("Failed to fetch units");
+      let { data, error, status } = await supabase.from("Unit").select("*");
+
+      if (error) {
+        console.error("Failed to fetch units:", error.message);
+        return;
       }
 
-      setUnits(data || []);
+      if (status === 200 && data) {
+        setUnits(data);
+      }
     };
     fetch();
   }, []);
 
   const [isFetching, setIsFetching] = useState<boolean>(false);
-  const [item, setItem] = useState<IItemIn>();
+  const [item, setItem] = useState<IItemOut | undefined>(undefined);
   useEffect(() => {
     const fetch = async () => {
-      try {
-        setIsFetching(true);
-        const { data, error } = await supabase.from("Item").select().eq("id", id).single();
-        if (error) {
-          throw new Error("Failed to fetch item");
-        }
+      setIsFetching(true);
+      const { data, error, status } = await supabase.from("Item").select().eq("id", id).single();
+
+      if (error) {
+        console.error("Failed to fetch item:", error.message);
+        setIsFetching(false);
+        return;
+      }
+
+      if (status === 200 && data) {
         setItem(data);
-      } catch (error) {
-        console.error("Failed to fetch item:", error);
-      } finally {
         setIsFetching(false);
       }
     };
@@ -117,8 +124,8 @@ export default function ItemEditDialog({ id, setRefreshNow }: Props) {
     if (item) {
       form.reset({
         name: item.name || "",
-        category: item.category || 0,
-        unit: item.unit || 0,
+        category: item.category.toString() || "",
+        unit: item.unit.toString() || "",
         sp: item.sp || 0,
         cp: item.cp || 0,
         openingStock: item.openingStock || 0,
@@ -134,25 +141,21 @@ export default function ItemEditDialog({ id, setRefreshNow }: Props) {
   // Define a submit handler
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      setIsUpdating(true);
-      const { data, error, status } = await supabase.from("Item").update(values).eq("id", id);
+    setIsUpdating(true);
+    const { data, error, status } = await supabase.from("Item").update(values).eq("id", id);
 
-      if (error || status !== 204) {
-        let errorMessage = "Failed to update item";
-        if (error && error.message) {
-          errorMessage = error.message;
-        }
-        throw new Error(errorMessage);
-      }
+    if (error) {
+      setIsUpdating(false);
+      toast.error(error.details || "An error occurred during update. Please try again.");
+      return;
+    }
 
+    if (status == 204) {
       setRefreshNow(true);
       form.reset();
-      toast.success("Item updated successfully");
-    } catch (error: any) {
-      toast.error(error.message || "An error occurred during update. Please try again.");
-    } finally {
       setIsUpdating(false);
+      toast.success("Item updated successfully.");
+      return;
     }
   };
 
@@ -381,7 +384,7 @@ export default function ItemEditDialog({ id, setRefreshNow }: Props) {
                   type="submit"
                   disabled={isUpdating}>
                   {isUpdating && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
-                  {isUpdating ? " Please wait" : " Create Item"}
+                  {isUpdating ? " Please wait" : " Update Item"}
                 </Button>
               </div>
             </div>

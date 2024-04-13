@@ -47,20 +47,22 @@ export default function UnitCreateDialog({ setRefreshNow }: Props) {
   // Define a submit handler
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      setIsCreating(true);
-      const { data, error, status } = await supabase.from("Unit").insert([values]).select();
+    setIsCreating(true);
+    const { data, error, status } = await supabase.from("Unit").insert([values]).select();
 
-      if (error || status !== 201) {
-        throw new Error("Failed to create unit");
-      }
-      setRefreshNow(true);
-      toast.success("Unit created successfully");
-      form.reset();
-    } catch (error) {
-      toast.error("Failed to create unit");
-    } finally {
+    if (error) {
+      toast.error(error.details || "An error occurred during create. Please try again.");
+      console.error("Failed to create unit:", error.message);
       setIsCreating(false);
+      return;
+    }
+
+    if (status === 201 && data) {
+      setRefreshNow(true);
+      form.reset();
+      setIsCreating(false);
+      toast.success("Unit created successfully");
+      return;
     }
   };
 
