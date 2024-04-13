@@ -1,20 +1,20 @@
 "use client";
 import * as React from "react";
-import { ChevronDownIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
+import { CaretSortIcon, ChevronDownIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { ColumnDef, ColumnFiltersState, SortingState, VisibilityState, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import Link from "next/link";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useState } from "react";
-import Image from "next/image";
-import { supabase } from "@/utils/supabase/supabaseClient";
 import DynamicBreadcrumb from "@/components/custom/DynamicBreadcrumb";
 import moment from "moment";
+import { supabase } from "@/utils/supabase/supabaseClient";
+import IncomeCreateDialog from "./(components)/IncomeCreateDialog";
+import IncomeEditDialog from "./(components)/IncomeEditDialog";
 import { IIncomeOut } from "@/app/types/income";
 
 export default function Page() {
@@ -25,38 +25,41 @@ export default function Page() {
 
   const [refreshNow, setRefreshNow] = useState(false);
   const [incomes, setIncomes] = React.useState<IIncomeOut[]>([]);
+
   React.useEffect(() => {
     const fetch = async () => {
-      let { data, error } = await supabase.from("Income").select(`
-      *,
-      category (name)
-     `);
+      let { data, error, status } = await supabase.from("Income").select("*");
 
       if (error) {
-        throw new Error("Failed to fetch incomes");
+        console.error("Failed to fetch incomes:", error.message);
+        return;
       }
-      setIncomes(data || []);
+
+      if (status === 200 && data) {
+        setIncomes(data);
+        setRefreshNow(false);
+      }
     };
     fetch();
   }, [refreshNow]);
 
-  console.log(incomes);
-
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const handleDelete = async (id: number) => {
-    try {
-      setIsDeleting(true);
-      const { error, data, status } = await supabase.from("Income").delete().eq("id", id);
+  const deleteIncome = async (id: number) => {
+    setIsDeleting(true);
+    const { error, data, status } = await supabase.from("Income").delete().eq("id", id);
 
-      setRefreshNow(!refreshNow);
-      if (error || status !== 204) {
-        throw new Error("Failed to delete income");
-      }
-      toast.success(isDeleting ? "Income deleting" : "Income deleted successfully");
-    } catch (error) {
-      toast.error("Failed to delete income");
-    } finally {
+    if (error) {
+      toast.error(error.details || "An error occurred during delete. Please try again.");
+      console.error("Failed to delete income:", error.message);
       setIsDeleting(false);
+      return;
+    }
+
+    if (status === 204) {
+      setRefreshNow(true);
+      setIsDeleting(false);
+      toast.success(isDeleting ? "Income deleting" : "Income deleted successfully");
+      return;
     }
   };
 
@@ -84,44 +87,21 @@ export default function Page() {
     {
       accessorKey: "amount",
       header: "Amount",
-      cell: ({ row }) => <div className="capitalize">{row.getValue("amount")}</div>,
-    },
-    {
-      accessorKey: "paymentMethod",
-      header: "Method",
-      cell: ({ row }) => <div className="capitalize">{row.getValue("paymentMethod")}</div>,
+      cell: ({ row }) => <div>{row.getValue("amount")}</div>,
     },
 
     {
       accessorKey: "date",
-      header: "Transaction Date",
-      cell: ({ row }) => <div className="capitalize">{moment(row.getValue("date")).format("llll")}</div>,
+      header: "As of Date",
+      cell: ({ row }) => <div className="capitalize">{moment(row.getValue("date")).format("MMM Do YY")}</div>,
     },
 
     {
       accessorKey: "created_at",
       header: "Created Date",
-      cell: ({ row }) => <div className="capitalize">{moment(row.getValue("created_at")).format("llll")}</div>,
+      cell: ({ row }) => <div className="capitalize">{moment(row.getValue("created_at")).format("MMM Do YY")}</div>,
     },
 
-    {
-      accessorKey: "image",
-      header: "Image",
-      cell: ({ row }) => {
-        const image: string = row.getValue("image") as string;
-        return (
-          <div className="">
-            <Image
-              src={image}
-              alt="img"
-              width={30}
-              height={30}
-              className=" border p-1 rounded-md"
-            />
-          </div>
-        );
-      },
-    },
     {
       id: "actions",
       enableHiding: false,
@@ -143,13 +123,14 @@ export default function Page() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
-              <Link href={`/incomes/edit/${item.id}`}>
-                <DropdownMenuItem>Edit income</DropdownMenuItem>
-              </Link>
+              <IncomeEditDialog
+                id={item.id}
+                setRefreshNow={setRefreshNow}
+              />
 
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <span className=" flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"> Delete income</span>
+                  <span className=" flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-red-500/90"> Delete item</span>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
@@ -159,8 +140,8 @@ export default function Page() {
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
-                      className=" bg-red-500/90"
-                      onClick={() => handleDelete(item.id)}>
+                      className=" bg-red-500/90 hover:bg-red-500"
+                      onClick={() => deleteIncome(item.id)}>
                       Continue
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -198,7 +179,7 @@ export default function Page() {
       <DynamicBreadcrumb
         items={[
           { name: "Dashboard", link: "/dashboard" },
-          { name: "Incomes", link: "/incomes", isCurrentPage: true },
+          { name: "Items", link: "/items", isCurrentPage: true },
         ]}
       />
 
@@ -212,9 +193,7 @@ export default function Page() {
         />
 
         <div className=" space-x-2">
-          <Link href={"/incomes/create"}>
-            <Button>Create income</Button>
-          </Link>
+          <IncomeCreateDialog setRefreshNow={setRefreshNow} />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

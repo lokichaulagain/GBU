@@ -6,6 +6,7 @@ import CollapsibleTab from "../../components/custom/CollapsibleTab";
 import AdminNotification from "../../components/custom/AdminNotification";
 import AdminCircleUser from "../../components/custom/AdminCircleUser";
 import ThemeToggleButton from "@/components/custom/ThemeToggleButton";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -16,17 +17,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className=" flex">
       {!isFullScreen && (
-        <div className={`${isFullScreen ? "" : "w-2/12"}  h-screen overflow-y-scroll  p-4`}>
-          <p className=" text-3xl font-semibold  mb-8   ">Global Baluwa</p>
-          <div className=" space-y-4 tracking-wider   ">
-            {navItems.map((item: any, index: number) => (
-              <CollapsibleTab
-                key={index}
-                item={item}
-              />
-            ))}
+        <ScrollArea className={`${isFullScreen ? "" : "w-2/12"}  h-screen border p-4`}>
+          <div>
+            <p className=" text-3xl font-semibold  mb-8   ">Global Baluwa</p>
+            <div className=" space-y-4 tracking-wider   ">
+              {navItems.map((item: any, index: number) => (
+                <CollapsibleTab
+                  key={index}
+                  item={item}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        </ScrollArea>
       )}
 
       <div className={`${isFullScreen ? " w-full " : " w-10/12"} h-screen overflow-y-scroll`}>
@@ -63,76 +66,35 @@ const navItems = [
 
     subLinks: [
       {
-        title: "Units",
-        href: "/units",
-      },
-
-      {
         title: "Categories",
         href: "/categories",
       },
-
       {
-        title: "Items",
+        title: "Items List",
         href: "/items",
       },
 
       {
-        title: "Parties",
-        href: "/parties",
+        title: "Units",
+        href: "/units",
       },
 
-      {
-        title: "Types",
-        href: "/types",
-      },
+      // {
+      //   title: "Parties",
+      //   href: "/parties",
+      // },
 
-      {
-        title: "Income Categories",
-        href: "/",
-      },
-
-      {
-        title: "Expense Categories",
-        href: "/",
-      },
+      // {
+      //   title: "Types",
+      //   href: "/types",
+      // },
     ],
   },
 
   {
-    name: "Incomes Expenses",
-    icon: <User2 size={15} />,
-    href: "",
-
-    subLinks: [
-      {
-        title: "Incomes",
-        href: "/",
-      },
-
-      {
-        title: "Expenses",
-        href: "/",
-      },
-    ],
-  },
-
-  {
-    name: "Payment In/Out ",
-    icon: <User2 size={15} />,
-    href: "",
-
-    subLinks: [
-      {
-        title: "Payment In",
-        href: "/payment-in",
-      },
-
-      {
-        title: "Payment Out",
-        href: "/payment-out",
-      },
-    ],
+    name: "Parties",
+    icon: <Settings size={15} />,
+    href: "/parties",
   },
 
   {
@@ -153,9 +115,8 @@ const navItems = [
     ],
   },
 
-
   {
-    name: "Incomes & Expenses ",
+    name: "Incomes Expenses",
     icon: <User2 size={15} />,
     href: "",
 
@@ -168,6 +129,24 @@ const navItems = [
       {
         title: "Expenses",
         href: "/expenses",
+      },
+    ],
+  },
+
+  {
+    name: "Payment In/Out ",
+    icon: <User2 size={15} />,
+    href: "",
+
+    subLinks: [
+      {
+        title: "Payment In",
+        href: "/payment-in",
+      },
+
+      {
+        title: "Payment Out",
+        href: "/payment-out",
       },
     ],
   },
