@@ -29,7 +29,9 @@ const formSchema = z.object({
       message: "Name must be between 2-20 characters.",
     }),
 
-  type: z.enum(["income", "expense"]),
+  type: z.string().min(1, {
+    message: "Type is required.",
+  }),
 });
 
 export default function CategoryEditDialog({ id, setRefreshNow }: Props) {
@@ -38,7 +40,7 @@ export default function CategoryEditDialog({ id, setRefreshNow }: Props) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      type: undefined,
+      type: "",
     },
   });
 

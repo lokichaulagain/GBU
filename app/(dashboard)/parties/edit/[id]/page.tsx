@@ -22,7 +22,6 @@ import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { FormControl } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ITypeOut } from "@/app/types/type";
 import useCloudinaryFileUpload from "@/app/hooks/useCloudinaryFileUpload";
 import defaultImage from "../../../../../public/default-images/unit-default-image.png";
 import { supabase } from "@/utils/supabase/supabaseClient";
@@ -66,7 +65,7 @@ export default function Page() {
 
   const [imageUrl, setImageUrl] = useState<string>("");
 
-  const [types, setTypes] = React.useState<ITypeOut[]>([]);
+  const [types, setTypes] = React.useState<any[]>([]);
   React.useEffect(() => {
     const fetch = async () => {
       let { data, error } = await supabase.from("Type").select("*");
@@ -130,7 +129,7 @@ export default function Page() {
         image: party.image || "",
       });
 
-      const selectedType: ITypeOut | undefined = types.find((item) => item.id === party.type);
+      const selectedType: any | undefined = types.find((item) => item.id === party.type);
       if (selectedType) {
         form.setValue("type", selectedType.id);
       }

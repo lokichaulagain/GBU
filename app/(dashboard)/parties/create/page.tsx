@@ -20,7 +20,6 @@ import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ITypeOut } from "@/app/types/type";
 import { supabase } from "@/utils/supabase/supabaseClient";
 
 const formSchema = z.object({
@@ -73,7 +72,7 @@ export default function Page() {
     },
   });
 
-  const [types, setTypes] = React.useState<ITypeOut[]>([]);
+  const [types, setTypes] = React.useState<any[]>();
   React.useEffect(() => {
     const fetch = async () => {
       let { data, error } = await supabase.from("Type").select("*");
@@ -171,7 +170,7 @@ export default function Page() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {types.map((item) => (
+                  {types?.map((item) => (
                     <SelectItem
                       key={item.id}
                       value={item.id.toString()}>
