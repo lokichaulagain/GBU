@@ -1,10 +1,8 @@
-import { ITypeOut } from "./type";
-
 export interface IPartyOut {
   id: number;
   name: string;
   phone: number;
-  type: ITypeOut;
+  type: any;
 
   openingBalance: number;
   openingBalanceDate: Date;
