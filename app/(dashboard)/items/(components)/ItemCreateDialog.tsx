@@ -24,17 +24,17 @@ const formSchema = z.object({
   }),
 
   category: z.string().min(1, {
-    message: "Category is required",
+    message: "Category is required.",
   }),
 
   unit: z.string().min(1, {
-    message: "Unit is required",
+    message: "Unit is required.",
   }),
 
-  sp: z.string().optional(),
-  cp: z.string().optional(),
+  sp: z.coerce.number().optional(),
+  cp: z.coerce.number().optional(),
 
-  openingStock: z.string().optional(),
+  openingStock: z.coerce.number().optional(),
   asOfDate: z.coerce.date().default(new Date()),
 
   itemCode: z.string().optional(),
@@ -50,9 +50,9 @@ export default function ItemCreateDialog({ setRefreshNow }: Props) {
       name: "",
       category: "",
       unit: "",
-      sp: "",
-      cp: "",
-      openingStock: "",
+      sp: 0,
+      cp: 0,
+      openingStock: 0,
       asOfDate: new Date(),
       itemCode: "",
       itemLocation: "",
@@ -60,29 +60,38 @@ export default function ItemCreateDialog({ setRefreshNow }: Props) {
     },
   });
 
+
   const [categories, setCategories] = React.useState<ICategoryOut[]>([]);
   React.useEffect(() => {
     const fetch = async () => {
-      let { data, error } = await supabase.from("Category").select("*");
-      if (error || !data) {
-        throw new Error("Failed to fetch categories");
+      let { data, error, status } = await supabase.from("Category").select("*");
+
+      if (error) {
+        console.error("Failed to fetch categories:", error.message);
+        return;
       }
 
-      setCategories(data || []);
+      if (status === 200 && data) {
+        setCategories(data);
+      }
     };
     fetch();
   }, []);
   console.log(categories);
 
-  const [units, setUnits] = useState<IUnitOut[]>();
+  const [units, setUnits] = useState<IUnitOut[]>([]);
   React.useEffect(() => {
     const fetch = async () => {
-      let { data, error } = await supabase.from("Unit").select("*");
-      if (error || !data) {
-        throw new Error("Failed to fetch units");
+      let { data, error, status } = await supabase.from("Unit").select("*");
+
+      if (error) {
+        console.error("Failed to fetch units:", error.message);
+        return;
       }
 
-      setUnits(data || []);
+      if (status === 200 && data) {
+        setUnits(data);
+      }
     };
     fetch();
   }, []);
@@ -90,20 +99,22 @@ export default function ItemCreateDialog({ setRefreshNow }: Props) {
   // Define a submit handler
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      setIsCreating(true);
-      const { data, error, status } = await supabase.from("Item").insert([values]).select();
+    setIsCreating(true);
+    const { data, error, status } = await supabase.from("Item").insert([values]).select().single();
 
-      if (error || status !== 201) {
-        throw new Error("Failed to create item");
-      }
-      setRefreshNow(true);
-      toast.success("Item created successfully");
-      form.reset();
-    } catch (error) {
-      toast.error("Failed to create item");
-    } finally {
+    if (error) {
+      toast.error(error.details || "An error occurred during create. Please try again.");
+      console.error("Failed to create item:", error.message);
       setIsCreating(false);
+      return;
+    }
+
+    if (status === 201 && data) {
+      setRefreshNow(true);
+      form.reset();
+      setIsCreating(false);
+      toast.success("Item created successfully");
+      return;
     }
   };
 

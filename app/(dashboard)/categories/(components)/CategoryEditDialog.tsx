@@ -43,19 +43,20 @@ export default function CategoryEditDialog({ id, setRefreshNow }: Props) {
   });
 
   const [isFetching, setIsFetching] = useState<boolean>(false);
-  const [category, setCategory] = useState<ICategoryOut>();
+  const [category, setCategory] = useState<ICategoryOut | undefined>(undefined);
   useEffect(() => {
     const fetch = async () => {
-      try {
-        setIsFetching(true);
-        const { data, error } = await supabase.from("Category").select().eq("id", id).single();
-        if (error) {
-          throw new Error("Failed to fetch category");
-        }
+      setIsFetching(true);
+      const { data, error, status } = await supabase.from("Category").select().eq("id", id).single();
+
+      if (error) {
+        console.error("Failed to fetch category:", error.message);
+        setIsFetching(false);
+        return;
+      }
+
+      if (status === 200 && data) {
         setCategory(data);
-      } catch (error) {
-        console.error("Failed to fetch category:", error);
-      } finally {
         setIsFetching(false);
       }
     };
@@ -75,25 +76,21 @@ export default function CategoryEditDialog({ id, setRefreshNow }: Props) {
   // Define a submit handler
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      setIsUpdating(true);
-      const { data, error, status } = await supabase.from("Category").update(values).eq("id", id);
+    setIsUpdating(true);
+    const { data, error, status } = await supabase.from("Category").update(values).eq("id", id);
 
-      if (error || status !== 204) {
-        let errorMessage = "Failed to update category";
-        if (error && error.message) {
-          errorMessage = error.message;
-        }
-        throw new Error(errorMessage);
-      }
+    if (error) {
+      setIsUpdating(false);
+      toast.error(error.details || "An error occurred during update. Please try again.");
+      return;
+    }
 
+    if (status == 204) {
       setRefreshNow(true);
       form.reset();
-      toast.success("Category updated successfully");
-    } catch (error: any) {
-      toast.error(error.message || "An error occurred during update. Please try again.");
-    } finally {
       setIsUpdating(false);
+      toast.success("Category updated successfully.");
+      return;
     }
   };
 

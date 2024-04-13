@@ -42,24 +42,22 @@ export default function CategoryCreateDialog({ setRefreshNow }: Props) {
   // Define a submit handler
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      setIsCreating(true);
-      const { data, error, status } = await supabase.from("Category").insert([values]).select();
+    setIsCreating(true);
+    const { data, error, status } = await supabase.from("Category").insert([values]).select();
 
-      if (error || status !== 201) {
-        let errorMessage = "Failed to create category";
-        if (error && error.message) {
-          errorMessage = error.message;
-        }
-        throw new Error(errorMessage);
-      }
-      setRefreshNow(true);
-      toast.success("Category created successfully");
-      form.reset();
-    } catch (error:any) {
-        toast.error(error.message || "An error occurred during update. Please try again.");
-    } finally {
+    if (error) {
+      toast.error(error.details || "An error occurred during create. Please try again.");
+      console.error("Failed to create category:", error.message);
       setIsCreating(false);
+      return;
+    }
+
+    if (status === 201 && data) {
+      setRefreshNow(true);
+      form.reset();
+      setIsCreating(false);
+      toast.success("Category created successfully");
+      return;
     }
   };
 
