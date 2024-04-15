@@ -15,8 +15,35 @@ import Image from "next/image";
 import { IPaymentinOut } from "@/app/types/payment";
 import { supabase } from "@/utils/supabase/supabaseClient";
 import PaymentInCreateDialog from "./(components)/PaymentInCreateDialog";
+import PaymentInEditDialog from "./(components)/PaymentInEditDialog";
 
-const columns: ColumnDef<IPaymentinOut>[] = [
+
+
+export default function Page() {
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+
+  const [refreshNow, setRefreshNow] = useState(false);
+
+  const [paymentsIn, setPaymentsIn] = React.useState<IPaymentinOut[]>([]);
+  React.useEffect(() => {
+    const fetch = async () => {
+      let { data, error } = await supabase.from("Payment-in").select("*");
+
+      if (error) {
+        throw new Error("Failed to fetch parties");
+      }
+      setPaymentsIn(data || []);
+    };
+    fetch();
+  }, [refreshNow]);
+
+  console.log(paymentsIn);
+
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const columns: ColumnDef<IPaymentinOut>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -97,10 +124,10 @@ const columns: ColumnDef<IPaymentinOut>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
-            <Link href={`/paymentsIn/edit/${item.id}`}>
-              <DropdownMenuItem>Edit payment-in</DropdownMenuItem>
-            </Link>
-
+             <PaymentInEditDialog
+                id={item.id}
+                setRefreshNow={setRefreshNow}
+              />
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <span className=" flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"> Delete payment-in</span>
@@ -114,7 +141,7 @@ const columns: ColumnDef<IPaymentinOut>[] = [
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
                     className=" bg-red-500/90"
-                    // onClick={() => deletePaymentIn(item.id)}
+                    onClick={() => deletePaymentIn(item.id)}
                     >
                     Continue
                   </AlertDialogAction>
@@ -127,31 +154,6 @@ const columns: ColumnDef<IPaymentinOut>[] = [
     },
   },
 ];
-
-export default function Page() {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
-
-  const [refreshNow, setRefreshNow] = useState(false);
-
-  const [paymentsIn, setPaymentsIn] = React.useState<IPaymentinOut[]>([]);
-  React.useEffect(() => {
-    const fetch = async () => {
-      let { data, error } = await supabase.from("Payment-in").select("*");
-
-      if (error) {
-        throw new Error("Failed to fetch parties");
-      }
-      setPaymentsIn(data || []);
-    };
-    fetch();
-  }, [refreshNow]);
-
-  console.log(paymentsIn);
-
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const deletePaymentIn = async (id: number) => {
     try {
       setIsDeleting(true);
