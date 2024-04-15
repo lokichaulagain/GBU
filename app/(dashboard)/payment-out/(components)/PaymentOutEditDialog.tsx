@@ -166,6 +166,21 @@ export default function PaymentOutEditDialog({ id, setRefreshNow }: Props) {
                 </FormItem>
               )}
             />
+             <FormField
+              control={form.control}
+              name="paidAmount"
+              render={({ field }) => (
+               <FormItem>
+                  <FormLabel>Paid Number</FormLabel>
+                  <Input
+                    {...field}
+                    type="number"
+                    placeholder="Enter Paid Amount"
+                  />
+                  <FormMessage {...field} />
+                </FormItem>
+              )}
+            />
 <FormField
           control={form.control}
           name="party"
