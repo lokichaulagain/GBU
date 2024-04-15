@@ -14,6 +14,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { IPaymentinOut } from "@/app/types/payment";
 import { supabase } from "@/utils/supabase/supabaseClient";
+import PaymentInCreateDialog from "./(components)/PaymentInCreateDialog";
 
 const columns: ColumnDef<IPaymentinOut>[] = [
   {
@@ -200,10 +201,7 @@ export default function Page() {
         />
 
         <div className=" space-x-2">
-          <Link href={"/payment-in/create"}>
-            <Button>Create payment-in</Button>
-          </Link>
-
+          <PaymentInCreateDialog setRefreshNow={setRefreshNow} />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
