@@ -166,6 +166,21 @@ export default function PaymentInEditDialog({ id, setRefreshNow }: Props) {
                 </FormItem>
               )}
             />
+             <FormField
+              control={form.control}
+              name="receivedAmount"
+              render={({ field }) => (
+               <FormItem>
+                  <FormLabel>Received Amount</FormLabel>
+                  <Input
+                    {...field}
+                    type="number"
+                    placeholder="Enter Received Amount"
+                  />
+                  <FormMessage {...field} />
+                </FormItem>
+              )}
+            />
 <FormField
           control={form.control}
           name="party"

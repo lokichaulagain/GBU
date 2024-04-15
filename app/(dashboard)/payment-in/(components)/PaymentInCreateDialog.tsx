@@ -248,6 +248,22 @@ export default function PaymentInCreateDialog({ setRefreshNow }: Props) {
 
             <FormField
               control={form.control}
+              name="receivedAmount"
+              render={({ field }) => (
+               <FormItem>
+                  <FormLabel>Received Amount</FormLabel>
+                  <Input
+                    {...field}
+                    type="number"
+                    placeholder="Enter Received Amount"
+                  />
+                  <FormMessage {...field} />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="image"
               render={({ field }) => (
                 <FormItem>
