@@ -28,7 +28,7 @@ export interface IPaymentinOut {
 export interface IPaymentoutOut {
   id: number;
   created_at: Date;
-  receiptNumber: string;
+  receiptNumber: number;
   party: number;
   paymentMethod: string;
   paidAmount: number;
@@ -37,13 +37,13 @@ export interface IPaymentoutOut {
   paymentDate: Date;
 }
 
-export interface IPaymentoutIn {
-  created_at: Date;
-  receiptNumber: string;
-  party: number;
-  paymentMethod: string;
-  paidAmount: number;
-  note?: string;
-  image?: string;
-  paymentDate: Date;
-}
+// export interface IPaymentoutIn {
+//   created_at: Date;
+//   receiptNumber: number;
+//   party: number;
+//   paymentMethod: string;
+//   paidAmount: number;
+//   note?: string;
+//   image?: string;
+//   paymentDate: Date;
+// }
