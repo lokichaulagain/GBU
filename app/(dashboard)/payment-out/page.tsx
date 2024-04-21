@@ -15,8 +15,18 @@ import DynamicBreadcrumb from "@/components/custom/DynamicBreadcrumb";
 import Image from "next/image";
 import { IPaymentoutOut } from "@/app/types/payment";
 import { supabase } from "@/utils/supabase/supabaseClient";
+import PaymentOutEditDialog from "./(components)/PaymentOutEditDialog";
+import PaymentOutCreateDialog from "./(components)/PaymentOutCreateDialog";
 
 
+export default function Page() {
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+  
+  const [refreshNow, setRefreshNow] = useState(false);
+  
 const columns: ColumnDef<IPaymentoutOut>[] = [
   {
     id: "select",
@@ -98,9 +108,10 @@ const columns: ColumnDef<IPaymentoutOut>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
-            <Link href={`/paymentsIn/edit/${item.id}`}>
-              <DropdownMenuItem>Edit payment-in</DropdownMenuItem>
-            </Link>
+          <PaymentOutEditDialog
+                id={item.id}
+                setRefreshNow={setRefreshNow}
+              />
 
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -115,7 +126,7 @@ const columns: ColumnDef<IPaymentoutOut>[] = [
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
                     className=" bg-red-500/90"
-                    // onClick={() => deletePaymentOut(item.id)}
+                    onClick={() => deletePaymentOut(item.id)}
                     >
                     Continue
                   </AlertDialogAction>
@@ -128,14 +139,6 @@ const columns: ColumnDef<IPaymentoutOut>[] = [
     },
   },
 ];
-
-export default function Page() {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
-  
-  const [refreshNow, setRefreshNow] = useState(false);
 
   const [paymentsOut, setPaymentsOut] = React.useState<IPaymentoutOut[]>([]);
   React.useEffect(() => {
@@ -204,9 +207,7 @@ export default function Page() {
         />
 
         <div className=" space-x-2">
-          <Link href={"/payment-out/create"}>
-            <Button>Create payment-in</Button>
-          </Link>
+            <PaymentOutCreateDialog setRefreshNow={setRefreshNow} />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

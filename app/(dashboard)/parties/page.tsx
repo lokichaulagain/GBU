@@ -16,6 +16,7 @@ import { supabase } from "@/utils/supabase/supabaseClient";
 import { IPartyOut } from "@/app/types/party";
 import PartyCreateDialog from "./(components)/PartyCreateDialog";
 import PartyEditDialog from "./(components)/PartyEditDialog";
+import { cp } from "fs";
 
 export default function Page() {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -101,30 +102,31 @@ export default function Page() {
       cell: ({ row }) => <div>{row.getValue("name")}</div>,
     },
 
-    {
-      accessorKey: "cp",
-      header: "CP",
-      cell: ({ row }) => <div>{row.getValue("cp")}</div>,
-    },
+    // bugfix: commented cp,sp and itemcode (whose corresponding data were not showing) 
+    // {
+    //   accessorKey: "cp",
+    //   header: "CP",
+    //   cell: ({ row }) => <div>{row.getValue("cp")}</div>,
+    // },
 
-    {
-      accessorKey: "sp",
-      header: "SP",
-      cell: ({ row }) => <div>{row.getValue("sp")}</div>,
-    },
+    // {
+    //   accessorKey: "sp",
+    //   header: "SP",
+    //   cell: ({ row }) => <div>{row.getValue("sp")}</div>,
+    // },
 
-    {
-      accessorKey: "itemCode",
-      header: "Item Code",
-      cell: ({ row }) => <div>{row.getValue("itemCode")}</div>,
-    },
+    // {
+    //   accessorKey: "itemCode",
+    //   header: "Item Code",
+    //   cell: ({ row }) => <div>{row.getValue("itemCode")}</div>,
+    // },
 
-    {
-      accessorKey: "itemCode",
-      header: "Item Code",
-      cell: ({ row }) => <div>{row.getValue("itemCode")}</div>,
-    },
-
+    // {
+    //   accessorKey: "itemCode",
+    //   header: "Item Code",
+    //   cell: ({ row }) => <div>{row.getValue("itemCode")}</div>,
+    // },
+{accessorKey: "openingBalance", header: "Opening Balance", cell: ({ row }) => <div>{row.getValue("openingBalance")}</div>},
     {
       accessorKey: "asOfDate",
       header: "As of Date",

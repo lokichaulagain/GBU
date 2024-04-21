@@ -229,7 +229,7 @@ export default function IncomeCreateDialog({ setRefreshNow }: Props) {
               name="paymentMethod"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Party *</FormLabel>
+                  <FormLabel>Payment Method*</FormLabel>
                   <FormControl>
                     <Select
                       {...field}
